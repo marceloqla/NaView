@@ -1,0 +1,24 @@
+{
+    "name": "bioinfo/naview",
+    "autoload": {
+        "psr-4": {
+            "Bioinfo\\Naview\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Marcelo Querino",
+            "email": "marceloqla@gmail.com"
+        },
+        {
+            "name": "Neli Fonseca",
+            "email": "neli@ebi.ac.uk"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        }
+    }
+}
