@@ -15,6 +15,12 @@ $obRouter->get('/about',[
 	}
 ]);
 
+$obRouter->get('/contact',[
+	function(){
+		return new Response(200, controller\Contact::getContact());
+	}
+]);
+
 $obRouter->get('/protein/{proteinId}',[
 	function($proteinId ){
 		return new Response(200, "Protein ".$proteinId );

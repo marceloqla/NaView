@@ -8,6 +8,6 @@ class About extends Base{
 	public static function getAbout(){
 		$content = View::render('about');
 
-		return parent::getPage('NaView > Home', $content);
+		return parent::getPage('NaView > About', $content, "", "about");
 	}
 }

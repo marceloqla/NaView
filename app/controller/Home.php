@@ -9,6 +9,6 @@ class Home extends Base{
 		$content = View::render('home');
 		$footer = '<script src="public/js/home.js"></script>';
 
-		return parent::getPage('NaView > Home', $content, $footer);
+		return parent::getPage('NaView > Home', $content, $footer, "home");
 	}
 }
