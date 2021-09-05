@@ -10,11 +10,11 @@ class Request{
 	private $headers = [];
 
 	public function __construct(){
-		$this->getParams = $_GET ?? [];
-		$this->postParams = $_POST ?? [];
+		$this->getParams = isset($_GET) ? $_GET : [];
+		$this->postParams = isset($_POST) ? $_POST : [];
 		$this->headers = getallheaders();
-		$this->httpMethod = $_SERVER['REQUEST_METHOD'] ?? '';
-		$this->uri = $_SERVER['REQUEST_URI'] ?? '';
+		$this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+		$this->uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 	}
 
 	public function getHttpMethod(){

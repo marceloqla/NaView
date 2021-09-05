@@ -21,7 +21,7 @@ class Router{
 	private function setPrefix(){
 		$parseUrl = parse_url($this->url);
 
-		$this->prefix = $parseUrl['path'] ?? '';
+		$this->prefix = isset($parseUrl['path']) ? $parseUrl['path'] : '';
 	}
 
 	private function addRoute($method, $route, $params = []){
@@ -100,7 +100,7 @@ class Router{
 			$reflection = new ReflectionFunction($route['controller']);
 			foreach ($reflection->getParameters() as $parameter) {
 				$name = $parameter->getName();
-				$args[$name] = $route['variables'][$name] ?? '';
+				$args[$name] = isset($route['variables'][$name]) ? $route['variables'][$name] : '';
 			}
 
 			return call_user_func_array($route['controller'], $args);
