@@ -117,3 +117,8 @@ footer .row::after {
   flex-wrap: wrap;
   display: flex;
 }
+
+/*Result*/
+#result {
+  margin-top: 20px;
+}

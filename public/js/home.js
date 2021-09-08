@@ -22,8 +22,8 @@ $(document).ready(function(){
 					<select id="select-protein" class="js-example-basic-single" name="state">
 						${options}
 					</select>
-					<button id="submit" type="button" class="btn btn-primary">Submit</button>
-				</div>`
+					<button id="submit" type="button" class="btn btn-primary" onclick="generateView()">Submit</button>
+				</div><div id="result"></div>`
         	);
             $('#select-protein').select2();
         },
@@ -38,3 +38,36 @@ $(document).ready(function(){
         }
     });
 });
+
+function generateView(){
+    let uniprot_id = $('#select-protein').find(':selected')[0].value;
+    let div_width = document.getElementById("result").offsetWidth;
+    console.log(div_width);
+    $("#result").empty();
+    $("#result").append(`<div class="spinner-border" role="status">
+                            <div class="loader" id="loader-1"></div>
+                        </div>`);
+    
+    $.ajax({
+        url: `https://www.uniprot.org/uniprot/${uniprot_id}.txt`,
+        headers: {
+            'Content-Type': 'text/plain'
+        },
+        type: "GET",
+        crossDomain: true,
+        success: function (result) {
+            $("#result").empty();
+            var naview = NaView({"protein_input":result, "container_id": "result", "svg_width": div_width});
+            
+        },
+        error: function () {
+            $("#result").empty();
+            $("#result").append(
+                `<div class="alert alert-danger" role="alert">
+                    <strong>Oh snap!</strong> There was a problem when connecting to UniProt.
+                </div>`
+            )
+            console.log("ERROR");
+        }
+    });
+}
