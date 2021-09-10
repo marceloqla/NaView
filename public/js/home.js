@@ -2,7 +2,7 @@ $(document).ready(function(){
 	$('#select-protein').select2();
 	//TODO: Change rows to 100000
 	$.ajax({
-        url: 'https://www.uniprot.org/uniprot/?query=family:%22sodium%20channel%20(TC%201.A.1.10)%20family%22&format=tab&limit=10&columns=id,entry%20name&sort=score',
+        url: 'https://www.uniprot.org/uniprot/?query=family:%22sodium%20channel%20(TC%201.A.1.10)%20family%22&format=tab&columns=id,entry%20name&sort=score',
         headers: {
             'Content-Type': 'text/plain'
         },

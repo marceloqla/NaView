@@ -5,7 +5,27 @@
 	<p>To use Na<sub>V</sub>iew in your website, all you need to do is include the following libraries in your project:</p>
 
 	<pre><code>
-		&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/d3.v5.min.js"&gt;&lt;/script&gt;
-		&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/naview.js"&gt;&lt;/script&gt;
+&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/d3.v5.min.js"&gt;&lt;/script&gt;
+&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/naview.js"&gt;&lt;/script&gt;
 	</code></pre>
+
+	<p>To draw the image, you need to create a NaView object passing a JSON settings argument, as can be seen in the example below. The protein input must be a <a href="https://www.uniprot.org" target="_blank">UniProtKb</a> sequence in the text format (i.e. <a href="https://www.uniprot.org/uniprot/P14555.txt" target="_blank">P14555</a>).</p>
+
+	<pre><code>
+var naview = NaView({
+	container_id="naview_container",
+	svg_width=1200,
+	svg_height=500,
+	//TODO: validate functions for all inputs
+	style_obj_input,
+	protein_input,
+	//TODO: convert properties function 
+	properties={},
+	color_rules=[],
+	text_to_draw=[],
+	relationships=[],
+});
+	</code></pre>
+
+	<p>The full documentation can be found <a href="{{URL}}/public/docs/index.html" target="_blank">here</a></p>
 </div>
