@@ -8,30 +8,157 @@
  * @param {string} container_id id of selected/created svg container
  * @param {number} svg_width width of selected/created svg (default:1200px)
  * @param {number} svg_height height of selected/created svg (default:500px)
- * @param {Object} style_obj_input styling object for all drawing options. See <b><i>style_obj</i></b> in Docs
- * @param {string} protein_input UniProt raw text to be processed See <b><i>parsed_protein_data</i></b> and also <b><i>processRawUniProt</i></b> in Docs
+ * @param {Object} style_obj_input styling object for all drawing options. See <b><i>this.style_obj</i></b> in Docs
+ * @param {string} protein_input UniProt raw text to be processed See <b><i>this.parsed_protein_data</i></b> and also <b><i>processRawUniProt</i></b> in Docs
  * @also
- * @param {Object} protein_input processed data input See <b><i>parsed_protein_data</i></b> and also <b><i>processRawUniProt</i></b> in Docs
- * @param {Object} properties residue properties for color mapping and Text drawing by residue selection. See <b><i>current_resid_properties</i></b> in Docs
- * @param {Array} color_rules Array of strings containing color rules in the color selection syntax. See <b><i>fillRules</i></b> and also <b><i>createFillRules</i></b> in Docs
+ * @param {Object} protein_input processed data input See <b><i>this.parsed_protein_data</i></b> and also <b><i>processRawUniProt</i></b> in Docs
+ * @param {Object} properties residue properties for color mapping and Text drawing by residue selection. See <b><i>this.current_resid_properties</i></b> in Docs
+ * @param {Array} color_rules Array of strings containing color rules in the color selection syntax. See <b><i>this.fillRules</i></b> and also <b><i>createthis.fillRules</i></b> in Docs
  * @param {Array} text_to_draw Array of strings containing text drawing rules in the text selection syntax. See <b><i>draw_symbols</i></b> in Docs
  * @param {Array} relationships Array of Objects describing residue relationships to be drawn in plot See <b><i>draw_residue_relations</i></b> in Docs
  */
-function NaView({
-    svg_id="naview_svg",
-    container_id="naview_container",
-    svg_width=1200,
-    svg_height=500,
-    //TODO: validate functions for all inputs
-    style_obj_input,
-    protein_input,
-    //TODO: convert properties function 
-    properties={},
-    color_rules=[],
-    text_to_draw=[],
-    relationships=[],
-    }={}) {
 
+class NaView {
+    constructor({
+            svg_id="naview_svg",
+            container_id="naview_container",
+            svg_width=1200,
+            svg_height=500,
+            //TODO: validate functions for all inputs
+            style_obj_input,
+            protein_input,
+            //TODO: convert properties function 
+            properties={},
+            color_rules=[],
+            text_to_draw=[],
+            relationships=[],
+            }={}) {
+        this.svg_id = svg_id;
+        this.container_id = container_id;
+        this.svg_width = svg_width;
+        this.svg_height = svg_height;
+        this.style_obj_input = style_obj_input;
+        this.protein_input = protein_input;
+        this.properties = properties;
+        this.color_rules = color_rules;
+        this.text_to_draw = text_to_draw;
+        this.relationships = relationships;
+
+
+        this.one_to_three = {
+            "A":"ALA",
+            "C":"CYS",
+            "D":"ASP",
+            "E":"GLU",
+            "F":"PHE",
+            "G":"GLY",
+            "H":"HIS",
+            "I":"ILE",
+            "K":"LYS",
+            "L":"LEU",
+            "M":"MET",
+            "N":"ASN",
+            "P":"PRO",
+            "Q":"GLN",
+            "R":"ARG",
+            "S":"SER",
+            "T":"THR",
+            "V":"VAL",
+            "W":"TRP",
+            "Y":"TYR",
+        };
+
+        this.three_to_one = {
+            "ALA":"A",
+            "CYS":"C",
+            "ASP":"D",
+            "GLU":"E",
+            "PHE":"F",
+            "GLY":"G",
+            "HIS":"H",
+            "ILE":"I",
+            "LYS":"K",
+            "LEU":"L",
+            "MET":"M",
+            "ASN":"N",
+            "PRO":"P",
+            "GLN":"Q",
+            "ARG":"R",
+            "SER":"S",
+            "THR":"T",
+            "VAL":"V",
+            "TRP":"W",
+            "TYR":"Y",
+        };
+
+        this.allowed_element_names = [
+            "DomainI;Helix1",
+            "DomainI;Helix2",
+            "DomainI;Helix3",
+            "DomainI;Helix4",
+            "DomainI;Helix5",
+            "DomainI;Helix6",
+            "DomainII;Helix1",
+            "DomainII;Helix2",
+            "DomainII;Helix3",
+            "DomainII;Helix4",
+            "DomainII;Helix5",
+            "DomainII;Helix6",
+            "DomainIII;Helix1",
+            "DomainIII;Helix2",
+            "DomainIII;Helix3",
+            "DomainIII;Helix4",
+            "DomainIII;Helix5",
+            "DomainIII;Helix6",
+            "DomainIV;Helix1",
+            "DomainIV;Helix2",
+            "DomainIV;Helix3",
+            "DomainIV;Helix4",
+            "DomainIV;Helix5",
+            "DomainIV;Helix6",
+            "DomainI;Loop1",
+            "DomainI;Loop2",
+            "DomainI;Loop3",
+            "DomainI;Loop4",
+            "DomainI;Loop5",
+            "DomainI;Loop6",
+            "DomainII;Loop1",
+            "DomainII;Loop2",
+            "DomainII;Loop3",
+            "DomainII;Loop4",
+            "DomainII;Loop5",
+            "DomainII;Loop6",
+            "DomainIII;Loop1",
+            "DomainIII;Loop2",
+            "DomainIII;Loop3",
+            "DomainIII;Loop4",
+            "DomainIII;Loop5",
+            "DomainIII;Loop6",
+            "DomainIV;Loop1",
+            "DomainIV;Loop2",
+            "DomainIV;Loop3",
+            "DomainIV;Loop4",
+            "DomainIV;Loop5",
+            "DomainIV;Loop6",
+            "DomainI;Pore",
+            "DomainII;Pore",
+            "DomainIII;Pore",
+            "DomainIV;Pore",
+            "InterDomain1;Loop",
+            "InterDomain2;Loop",
+            "InterDomain3;Loop",
+            "InterDomain4;Loop",
+            "InterDomain5;Loop"
+        ];
+        this.fillRules = [];
+        this.svg_drawarea;
+
+        this.initLib();
+    }
+
+    getSvgId() {
+        return this.svg_id;
+    }
     /**
      * Function to generate the default style object.<br>
      * 1. Helices are shown as cartoon<br>
@@ -42,7 +169,7 @@ function NaView({
      * @name generateDefaultStyleObject
      * @namespace
      */
-    function generateDefaultStyleObject() {
+    generateDefaultStyleObject() {
         let defaultStyleObject = {
             "membrane": {
                 "membrane_mode": "lipid",
@@ -66,15 +193,13 @@ function NaView({
             "protein": {
                 "helix_mode": "cartoon",
                 "helix_draw_opts": {
-                    "draw": { //example cartoon
-                        "x_to_end_prop": 1/20,
-                        "y_to_mid_prop": 1/7,
-                        "aa_area_perc_displacement": 0.1,
-                        "thickness": 0.55,
-                        "front_helix_stroke":'black',
-                        "back_helix_stroke": 'black',
-                        "stroke_size": 1.5, //px
-                    },
+                    "x_to_end_prop": 1/20,
+                    "y_to_mid_prop": 1/7,
+                    "aa_area_perc_displacement": 0.1,
+                    "thickness": 0.55,
+                    "front_helix_stroke":'black',
+                    "back_helix_stroke": 'black',
+                    "hh_stroke_size": 1.5, //px
                     "type": "dicts",
                     "fill": {
                         "type":"domain_and_name",
@@ -227,7 +352,6 @@ function NaView({
                         "type": "n_curves", // n_curves
                         "calc": {
                             "y_step": 0.5, //step used in path searching option in px, ignored in fixed, custom
-                            "n_centers": 2, //number of waves to draw in curve
                             "perc_centers_height":[1.0, 0.5],// height percentage of each wave
                             "loop_rotation": 30 //rotation of loop around starting point
                         }
@@ -251,7 +375,6 @@ function NaView({
                         "type": "n_curves", // n_curves
                         "calc": {
                             "y_step": 0.5, //step used in path searching option in px, ignored in fixed, custom
-                            "n_centers": 4, //number of waves to draw in curve
                             "perc_centers_height":[1.0, 0.8, 0.5, 0.4],// height percentage of each wave
                             "loop_rotation": -30 //rotation of loop around starting point
                         }
@@ -270,34 +393,41 @@ function NaView({
                     "opacity": 1,
                     "stroke_size": "1.5px",
                     "centroid_pos": {
-                        "type": "custom",
+                        // "type": "custom",
+                        "type": "fixed",
+                        // "perc_y": 0.05,
+                        "perc_y": "between",
+                        // "perc_x": 0.1,
+                        "perc_x": "between",
                         "perc_dict": {
                             "intramembrane":{
-                                "intramembrane":{"perc_y":"between", "perc_x":"between"},
-                                "intracellular":{"perc_y":0.65, "perc_x":"between"},
-                                "extracellular":{"perc_y":0.35, "perc_x":"between"},
+                                "intramembrane":{"perc_y1":"between", "perc_x1":"between"},
+                                "intracellular":{"perc_y1":0.65, "perc_x1":"between"},
+                                "extracellular":{"perc_y1":0.35, "perc_x1":"between"},
                             },
                             "intracellular":{
-                                "intracellular":{"perc_y":"between", "perc_x":"between"},
-                                "intramembrane":{"perc_y":0.65, "perc_x":"between"},
-                                "extracellular":{"perc_y":0.85, "perc_x":0.95}
+                                "intracellular":{"perc_y1":"between", "perc_x1":"between"},
+                                "intramembrane":{"perc_y1":0.65, "perc_x1":"between"},
+                                "extracellular":{"perc_y1":0.85, "perc_x1":0.95}
                             },
                             "extracellular":{
-                                "extracellular":{"perc_y":"between", "perc_x":"between"},
-                                "intracellular":{"perc_y":0.15, "perc_x":0.05},
-                                "intramembrane":{"perc_y":0.35, "perc_x":"between"}
+                                "extracellular":{"perc_y1":"between", "perc_x1":"between"},
+                                "intracellular":{"perc_y1":0.15, "perc_x1":0.05},
+                                "intramembrane":{"perc_y1":0.35, "perc_x1":"between"}
                             },
                         }
                     },
                     "weight_scaling": "absolute",
                     "path_width_scaling": {
                         "type":"calc",
+                        "perc_x": 0.01, // % of width
                         "domain": ["min", "max"],
                         "range": [2, 5],
                         "group_by_type": true
                     },
                     "color_scaling": {
-                        "type":"calc",
+                        "type":"none",
+                        // "type":"calc",
                         "property": "weight",
                         "domain": ["min", "max"],
                         "range": ["green", "blue"],
@@ -329,7 +459,6 @@ function NaView({
         }
         return defaultStyleObject;
     }
-
     /**
      * Object which controls every drawing aspect of plot. Contains four main attributes with lots of possible subdivisions and options.<br>
      * These four attributes are:<br>
@@ -406,7 +535,7 @@ function NaView({
      * --------"thickness": proportion that influences half turn height<br>
      * --------"front_helix_stroke": stroke color of front half helices<br>
      * --------"back_helix_stroke": stroke color of back half helices<br>
-     * --------"stroke_size": stroke size of half helices<br>
+     * --------"hh_stroke_size": stroke size of half helices<br>
      * <br>
      * ----"helix_draw_opts" also has properties that can be applied for any helix element which<br>
      * ----have a specific formatting as a dictionary of domain keys mapping to arrays of six elements<br>
@@ -505,7 +634,7 @@ function NaView({
      * ------------ in loop type "n_curves", loops are initially drawn as a straight line <br>
      * ------------ from the "canvas" bottom left corner to Helix 1 of Domain 1 and a number of "waves" are added<br>
      * ------------ to these loops. the height of each wave is calculated as percentages of a maximum wave step (attribute "y_step")<br>
-     * ------------ in the calc attribute "perc_centers_height". the number of waves is defined in the "n_centers" "calc" attribute<br>
+     * ------------ in the calc attribute "perc_centers_height".<br>
      * <br>
      * --------- Note 1:<br>
      * --------- long_loops_draw_opts has an additional "width" attribute that regulates their initial draw areas "width" calculation<br>
@@ -528,7 +657,86 @@ function NaView({
      * @exports NaView
      * @name style_obj
      */
-    var style_obj;
+    // var style_obj;
+
+    /**
+     * 
+     * @param {String} format Optional. Possible values: var for variable or json for text formatted json
+     */
+    getStyleObject(format) {
+        if (format){
+            if (format === "var") {
+                return this.style_obj;
+            } else if (format === "json") {
+                return JSON.stringify(this.style_obj);
+            }
+        }
+        return this.style_obj;
+    }
+
+    getParsedProteinData() {
+        return this.parsed_protein_data.data;
+    }
+
+    getAllResids() {
+        return this.rangeArray(this.parsed_protein_data.fullseq.length, 1);
+    }
+
+    getOneToThree() {
+        return this.one_to_three;
+    }
+
+    getThreeToOne() {
+        return this.three_to_one;
+    }
+
+    getElementNamesCentroids() {
+        return this.parsed_protein_data.residue_element_centroids;
+    }
+
+    setCurrentPropertiesResetView(new_resid_properties) { //drawEverything
+        this.properties = new_resid_properties;
+        this.resetLib();
+    }
+
+    setCurrentRelationsResetView(new_resid_relations) {
+        this.relationships = new_resid_relations;
+        this.resetLib();
+    }
+
+    getCurrentProperties() { //drawEverything
+        // return this.parsed_protein_data.resid_properties;
+        return this.properties;
+    }
+
+    setStyleObj(new_style_obj) {
+        this.style_obj = this.deepCopy(new_style_obj);
+    }
+    
+    setStyleObjResetView(new_style_obj) {
+        console.log("new_style_obj");
+        console.log(new_style_obj);
+        this.style_obj = this.deepCopy(new_style_obj);
+        this.resetLib();
+    }
+
+    getTextRules() {
+        return this.text_to_draw;
+    }
+
+    getColorRules() {
+        return this.color_rules;
+    }
+
+    setTextRulesAndReRender(new_text_draw) {
+        this.text_to_draw = this.deepCopy(new_text_draw);
+        this.resetLib();
+    }
+
+    setColorRulesAndReRender(new_color_rules) {
+        this.color_rules = this.deepCopy(new_color_rules);
+        this.resetLib();
+    }
 
     /**
      * Dictionary for residue properties.<br>
@@ -556,17 +764,17 @@ function NaView({
      * @exports NaView
      * @name current_resid_properties
      */
-    var current_resid_properties;
+    // var current_resid_properties;
 
     /**
      * Global object storing fill rules for residue/elements
-     * @see createFillRules
+     * @see createfillRules
      * @namespace
      * @type {{}}
      * @exports NaView
      * @name fillRules
      */
-    var fillRules = [];
+    // var fillRules = [];
 
     /**
      * Global object storing drawing area boundaries for SVG element
@@ -575,7 +783,7 @@ function NaView({
      * @exports NaView
      * @name svg_drawarea
      */
-    var svg_drawarea;
+    // var svg_drawarea;
 
     /**
      * Dictionary for converting one letter amino acid syntax to three letter
@@ -584,28 +792,28 @@ function NaView({
      * @exports NaView
      * @name one_to_three
      */
-    var one_to_three = {
-        "A":"ALA",
-        "C":"CYS",
-        "D":"ASP",
-        "E":"GLU",
-        "F":"PHE",
-        "G":"GLY",
-        "H":"HIS",
-        "I":"ILE",
-        "K":"LYS",
-        "L":"LEU",
-        "M":"MET",
-        "N":"ASN",
-        "P":"PRO",
-        "Q":"GLN",
-        "R":"ARG",
-        "S":"SER",
-        "T":"THR",
-        "V":"VAL",
-        "W":"TRP",
-        "Y":"TYR",
-    };
+    // var this.one_to_three = {
+    //     "A":"ALA",
+    //     "C":"CYS",
+    //     "D":"ASP",
+    //     "E":"GLU",
+    //     "F":"PHE",
+    //     "G":"GLY",
+    //     "H":"HIS",
+    //     "I":"ILE",
+    //     "K":"LYS",
+    //     "L":"LEU",
+    //     "M":"MET",
+    //     "N":"ASN",
+    //     "P":"PRO",
+    //     "Q":"GLN",
+    //     "R":"ARG",
+    //     "S":"SER",
+    //     "T":"THR",
+    //     "V":"VAL",
+    //     "W":"TRP",
+    //     "Y":"TYR",
+    // };
     
     /**
      * Dictionary for converting three letter amino acid syntax to one letter
@@ -614,28 +822,28 @@ function NaView({
      * @exports NaView
      * @name three_to_one
      */
-    var three_to_one = {
-        "ALA":"A",
-        "CYS":"C",
-        "ASP":"D",
-        "GLU":"E",
-        "PHE":"F",
-        "GLY":"G",
-        "HIS":"H",
-        "ILE":"I",
-        "LYS":"K",
-        "LEU":"L",
-        "MET":"M",
-        "ASN":"N",
-        "PRO":"P",
-        "GLN":"Q",
-        "ARG":"R",
-        "SER":"S",
-        "THR":"T",
-        "VAL":"V",
-        "TRP":"W",
-        "TYR":"Y",
-    };
+    // var this.three_to_one = {
+    //     "ALA":"A",
+    //     "CYS":"C",
+    //     "ASP":"D",
+    //     "GLU":"E",
+    //     "PHE":"F",
+    //     "GLY":"G",
+    //     "HIS":"H",
+    //     "ILE":"I",
+    //     "LYS":"K",
+    //     "LEU":"L",
+    //     "MET":"M",
+    //     "ASN":"N",
+    //     "PRO":"P",
+    //     "GLN":"Q",
+    //     "ARG":"R",
+    //     "SER":"S",
+    //     "THR":"T",
+    //     "VAL":"V",
+    //     "TRP":"W",
+    //     "TYR":"Y",
+    // };
     
     /**
      * List of allowed names for drawn elements.<br>
@@ -649,65 +857,65 @@ function NaView({
      * @exports NaView
      * @name allowed_element_names
      */
-    var allowed_element_names = [
-        "DomainI;Helix1",
-        "DomainI;Helix2",
-        "DomainI;Helix3",
-        "DomainI;Helix4",
-        "DomainI;Helix5",
-        "DomainI;Helix6",
-        "DomainII;Helix1",
-        "DomainII;Helix2",
-        "DomainII;Helix3",
-        "DomainII;Helix4",
-        "DomainII;Helix5",
-        "DomainII;Helix6",
-        "DomainIII;Helix1",
-        "DomainIII;Helix2",
-        "DomainIII;Helix3",
-        "DomainIII;Helix4",
-        "DomainIII;Helix5",
-        "DomainIII;Helix6",
-        "DomainIV;Helix1",
-        "DomainIV;Helix2",
-        "DomainIV;Helix3",
-        "DomainIV;Helix4",
-        "DomainIV;Helix5",
-        "DomainIV;Helix6",
-        "DomainI;Loop1",
-        "DomainI;Loop2",
-        "DomainI;Loop3",
-        "DomainI;Loop4",
-        "DomainI;Loop5",
-        "DomainI;Loop6",
-        "DomainII;Loop1",
-        "DomainII;Loop2",
-        "DomainII;Loop3",
-        "DomainII;Loop4",
-        "DomainII;Loop5",
-        "DomainII;Loop6",
-        "DomainIII;Loop1",
-        "DomainIII;Loop2",
-        "DomainIII;Loop3",
-        "DomainIII;Loop4",
-        "DomainIII;Loop5",
-        "DomainIII;Loop6",
-        "DomainIV;Loop1",
-        "DomainIV;Loop2",
-        "DomainIV;Loop3",
-        "DomainIV;Loop4",
-        "DomainIV;Loop5",
-        "DomainIV;Loop6",
-        "DomainI;Pore",
-        "DomainII;Pore",
-        "DomainIII;Pore",
-        "DomainIV;Pore",
-        "InterDomain1;Loop",
-        "InterDomain2;Loop",
-        "InterDomain3;Loop",
-        "InterDomain4;Loop",
-        "InterDomain5;Loop"
-    ];
+    // var this.allowed_element_names = [
+    //     "DomainI;Helix1",
+    //     "DomainI;Helix2",
+    //     "DomainI;Helix3",
+    //     "DomainI;Helix4",
+    //     "DomainI;Helix5",
+    //     "DomainI;Helix6",
+    //     "DomainII;Helix1",
+    //     "DomainII;Helix2",
+    //     "DomainII;Helix3",
+    //     "DomainII;Helix4",
+    //     "DomainII;Helix5",
+    //     "DomainII;Helix6",
+    //     "DomainIII;Helix1",
+    //     "DomainIII;Helix2",
+    //     "DomainIII;Helix3",
+    //     "DomainIII;Helix4",
+    //     "DomainIII;Helix5",
+    //     "DomainIII;Helix6",
+    //     "DomainIV;Helix1",
+    //     "DomainIV;Helix2",
+    //     "DomainIV;Helix3",
+    //     "DomainIV;Helix4",
+    //     "DomainIV;Helix5",
+    //     "DomainIV;Helix6",
+    //     "DomainI;Loop1",
+    //     "DomainI;Loop2",
+    //     "DomainI;Loop3",
+    //     "DomainI;Loop4",
+    //     "DomainI;Loop5",
+    //     "DomainI;Loop6",
+    //     "DomainII;Loop1",
+    //     "DomainII;Loop2",
+    //     "DomainII;Loop3",
+    //     "DomainII;Loop4",
+    //     "DomainII;Loop5",
+    //     "DomainII;Loop6",
+    //     "DomainIII;Loop1",
+    //     "DomainIII;Loop2",
+    //     "DomainIII;Loop3",
+    //     "DomainIII;Loop4",
+    //     "DomainIII;Loop5",
+    //     "DomainIII;Loop6",
+    //     "DomainIV;Loop1",
+    //     "DomainIV;Loop2",
+    //     "DomainIV;Loop3",
+    //     "DomainIV;Loop4",
+    //     "DomainIV;Loop5",
+    //     "DomainIV;Loop6",
+    //     "DomainI;Pore",
+    //     "DomainII;Pore",
+    //     "DomainIII;Pore",
+    //     "DomainIV;Pore",
+    //     "InterDomain1;Loop",
+    //     "InterDomain2;Loop",
+    //     "InterDomain3;Loop",
+    //     "InterDomain4;Loop",
+    //     "InterDomain5;Loop"
+    // ];
 
 
 
@@ -717,24 +925,33 @@ function NaView({
      * @name initLib
      * @namespace
      */
-    function initLib() {
-        initMainSvg(svg_id, container_id, svg_width, svg_height);
-        if (style_obj_input) {
-            style_obj = style_obj_input;
+    initLib() {
+        this.initMainSvg(this.svg_id, this.container_id, this.svg_width, this.svg_height);
+        if (this.style_obj_input) {
+            this.style_obj = this.style_obj_input;
         }
-        if (!style_obj) {
+        if (!this.style_obj) {
             console.warn('style obj not set. creating a new one...');
-            style_obj = generateDefaultStyleObject();
+            this.style_obj = this.generateDefaultStyleObject();
         }
-        if (protein_input) {
-            initData();
+        if (this.protein_input) {
+            this.initData();
         } else {
             throw "Error: no protein input data";
         }
-        initViz();
-
+        this.initViz();
     }
-    initLib();
+
+    /**
+     * Reset Plot with new style_obj configurations
+     * @exports NaView
+     * @name initLib
+     * @namespace
+     */
+    resetLib() {
+        d3.select("#"+this.svg_id).html("");
+        this.initViz();
+    }
 
     /**
      * Function to generate the SVG Dom element.<br>
@@ -749,7 +966,7 @@ function NaView({
      * @name initMainSvg
      * @namespace
      */
-    function initMainSvg(svg_id, container_id, svg_width, svg_height) {
+    initMainSvg(svg_id, container_id, svg_width, svg_height) {
         let select_svg_container;
         if (container_id){
             select_svg_container = d3.select("#"+container_id);
@@ -774,13 +991,13 @@ function NaView({
      * @name initData
      * @namespace
      */
-    function initData() {
+    initData() {
         //check if input is already processed or not
         let processed = true;
         let key_list = ["fullseq","data","count_data","resid_properties"];
         for (let ikl = 0; ikl < key_list.length; ikl++) {
             let e_key = key_list[ikl];
-            if (protein_input.hasOwnProperty(e_key) === false) {
+            if (this.protein_input.hasOwnProperty(e_key) === false) {
                 // throw "Error: input data is missing required data keys"; 
                 console.warn("input data is missing required data keys... trying to parse raw data"); 
                 processed = false;
@@ -788,9 +1005,9 @@ function NaView({
             }
         }
         if (!processed) {
-            parsed_protein_data = processRawUniProt(protein_input);
+            this.parsed_protein_data = this.processRawUniProt(this.protein_input);
         } else {
-            parsed_protein_data = protein_input;
+            this.parsed_protein_data = this.protein_input;
         }
     }
 
@@ -800,16 +1017,16 @@ function NaView({
      * @name initViz
      * @namespace
      */
-    function initViz() {
-        let parsed_protein_data_drawareas = define_draw_areas(parsed_protein_data.data);
-        parsed_protein_data.data = parsed_protein_data_drawareas[0];
-        parsed_protein_data.membrane = parsed_protein_data_drawareas[1];
-        parsed_protein_data.draw_area = parsed_protein_data_drawareas[2];
-        parsed_protein_data.resid_properties = properties;
-        parsed_protein_data.color_rules = color_rules;
-        parsed_protein_data.draw_symbols = text_to_draw;
-        parsed_protein_data.residue_relations = relationships;
-        drawEverything(parsed_protein_data);
+    initViz() {
+        this.parsed_protein_data_drawareas = this.define_draw_areas(this.parsed_protein_data.data);
+        this.parsed_protein_data.data = this.parsed_protein_data_drawareas[0];
+        this.parsed_protein_data.membrane = this.parsed_protein_data_drawareas[1];
+        this.parsed_protein_data.draw_area = this.parsed_protein_data_drawareas[2];
+        this.parsed_protein_data.resid_properties = this.properties;
+        this.parsed_protein_data.color_rules = this.color_rules;
+        this.parsed_protein_data.draw_symbols = this.text_to_draw;
+        this.parsed_protein_data.residue_relations = this.relationships;
+        this.drawEverything(this.parsed_protein_data);
         console.log("generated plot!");
     }
 
@@ -822,7 +1039,7 @@ function NaView({
      * @name roundDecimals
      * @yields {number} rounded number up to given decimal places
      */
-    function roundDecimals(num, after_comma) {
+    roundDecimals(num, after_comma) {
         let ten_basis = Math.pow(10, after_comma)
         return Math.round( num * ten_basis + Number.EPSILON ) / ten_basis;
     }
@@ -836,7 +1053,7 @@ function NaView({
      * @name getRandomIntInclusive
      * @yields {number} integer number between min and max
      */
-    function getRandomIntInclusive(min, max) {
+    getRandomIntInclusive(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -851,7 +1068,7 @@ function NaView({
      * @name getRandomFloatInclusive
      * @yields {number} float number between min and max
      */
-    function getRandomFloatInclusive(min, max) {
+    getRandomFloatInclusive(min, max) {
         return Math.random() * (max - min) + min;
     }
 
@@ -864,7 +1081,7 @@ function NaView({
      * @name stringToChunks
      * @yields Array of substrings
      */
-    function stringToChunks(str, n) {
+    stringToChunks(str, n) {
         var ret = [];
         var i;
         var len;
@@ -887,7 +1104,7 @@ function NaView({
      * @see stringToChunks for original function this was based on
      * @yields Array of substrings
      */
-    function stringToChunksSkip(str, n, s) {
+    stringToChunksSkip(str, n, s) {
         var ret = [];
         var i;
         var len;
@@ -933,7 +1150,7 @@ function NaView({
      * @name rangeArray
      * @yields Array of ascending numbers
      */
-    function rangeArray(size, startAt = 0) {
+    rangeArray(size, startAt = 0) {
         return [...Array(size).keys()].map(i => i + startAt);
     }
 
@@ -945,7 +1162,7 @@ function NaView({
      * @name deepCopy
      * @yields {Object} deep copy of obj input 
      */
-    function deepCopy(obj) {
+    deepCopy(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
 
@@ -957,7 +1174,7 @@ function NaView({
      * @name colorToRGBA
      * @yields {Array} [r, g, b, a] color Array generated from a ghost canvas
      */
-    function colorToRGBA(color) {
+    colorToRGBA(color) {
         var cvs, ctx;
         cvs = document.createElement('canvas');
         cvs.height = 1;
@@ -975,7 +1192,7 @@ function NaView({
      * @name pSBC
      * @see  {@link https://github.com/PimpTrizkit/PJs/wiki/12.-Shade,-Blend-and-Convert-a-Web-Color-(pSBC.js)} for further information.
      */
-    function pSBC(p,c0,c1,l) {
+    pSBC(p,c0,c1,l) {
         let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";
         if(typeof(p)!="number"||p<-1||p>1||typeof(c0)!="string"||(c0[0]!='r'&&c0[0]!='#')||(c1&&!a))return null;
         if(!this.pSBCr)this.pSBCr=(d)=>{
@@ -1011,7 +1228,7 @@ function NaView({
      * @example [1,2,2,3,3,4].filter(onlyUnique) returns [1,2,3,4]
      * @yields {Boolean} true when an Object is in Array, false when not
      */
-    function onlyUnique(value, index, self) {
+    onlyUnique(value, index, self) {
         return self.indexOf(value) === index;
     }
 
@@ -1037,7 +1254,7 @@ function NaView({
      * 4.resid_properties: Object with an index for each residue in protein (1,2,3,4... corresponding to each amino acid)
      * @see {@link https://www.uniprot.org/docs/userman.htm} for information on the UniProt text format
      */
-    function processRawUniProt(test_raw_protein) {
+    processRawUniProt(test_raw_protein) {
         let test_raw_protein_lines = test_raw_protein.split("\n");
         
         let start_chain = false;
@@ -1053,6 +1270,7 @@ function NaView({
         let lines_of_interest = [];
         let dom_counts = {};
         let dom_type_counts = {};
+        let sequence = "";
         for (let irpl = 0; irpl < test_raw_protein_lines.length; irpl++) {
             let test_raw_protein_line = test_raw_protein_lines[irpl];
             if (test_raw_protein_line.length > 13) {
@@ -1145,7 +1363,7 @@ function NaView({
                 aacounts_per_type["internal_loop"].push(aa_count);
             }
         }
-        end_chain_aa_alldomains = end_chain_aa - border_count;
+        let end_chain_aa_alldomains = end_chain_aa - border_count;
 
         type_aacounts["internal_helix"] = type_aacounts["helix"];// - border_count;
         type_aacounts["internal_loop"] = type_aacounts["loop"] - border_count;
@@ -1250,16 +1468,16 @@ function NaView({
      * @namespace
      * @yields {Array} Array of three draw areas: protein data from processRawUniProt alongside draw areas, draw area for membrane, SVG draw area with borders and membrane main coords
      */
-    function define_draw_areas(array_data) {
+    define_draw_areas(array_data) {
         var valorInicial = 0.0;
         var perc_total = array_data.reduce(function(acumulador, valorAtual, index, array) {
             return acumulador + valorAtual.aaperc;
         }, valorInicial);
-        let svg_drawing_area = createDrawingArea();
-        let parsed_lines_data = drawDataParsing(array_data);
-        let dom_idom_data = calcDomIDomWidths(svg_drawing_area, parsed_lines_data["domain_names"], parsed_lines_data["helices_and_pores_by_domain"]); // to_print
-        let longLoopWidthF = distributeLongLoopsWidth(dom_idom_data["inter_domain_width"], parsed_lines_data["long_loops"]);
-        let indexed_drawareas = calcElementsDrawAreas(array_data, svg_drawing_area, parsed_lines_data["domain_names"], parsed_lines_data["helices_and_pores_by_domain"],parsed_lines_data["internal_short_loops_by_domain"],parsed_lines_data["long_loops_by_prevdomain"],longLoopWidthF, dom_idom_data["total_domain_width"],dom_idom_data["inter_domain_width"]);
+        let svg_drawing_area = this.createDrawingArea();
+        let parsed_lines_data = this.drawDataParsing(array_data);
+        let dom_idom_data = this.calcDomIDomWidths(svg_drawing_area, parsed_lines_data["domain_names"], parsed_lines_data["helices_and_pores_by_domain"]); // to_print
+        let longLoopWidthF = this.distributeLongLoopsWidth(dom_idom_data["inter_domain_width"], parsed_lines_data["long_loops"]);
+        let indexed_drawareas = this.calcElementsDrawAreas(array_data, svg_drawing_area, parsed_lines_data["domain_names"], parsed_lines_data["helices_and_pores_by_domain"],parsed_lines_data["internal_short_loops_by_domain"],parsed_lines_data["long_loops_by_prevdomain"],longLoopWidthF, dom_idom_data["total_domain_width"],dom_idom_data["inter_domain_width"]);
         for (let id = 0; id < array_data.length; id++) {
             let nid = array_data[id].id;
             array_data[id]["draw_area"] = indexed_drawareas.protein[nid];
@@ -1274,17 +1492,17 @@ function NaView({
      * @namespace
      * @yields {Object} SVG draw area with borders and membrane main coords
      */
-    function createDrawingArea() {
-        let da_stx = svg_width * style_obj["canvas"]["border"]["left"];
-        let da_width = svg_width - (da_stx+(svg_width * style_obj["canvas"]["border"]["right"]));
+    createDrawingArea() {
+        let da_stx = this.svg_width * this.style_obj["canvas"]["border"]["left"];
+        let da_width = this.svg_width - (da_stx+(this.svg_width * this.style_obj["canvas"]["border"]["right"]));
         let da_etx = da_stx + da_width;
-        let da_sty = svg_height * style_obj["canvas"]["border"]["top"];
-        let da_height = svg_height - (da_sty+(svg_height*style_obj["canvas"]["border"]["bottom"]));
+        let da_sty = this.svg_height * this.style_obj["canvas"]["border"]["top"];
+        let da_height = this.svg_height - (da_sty+(this.svg_height*this.style_obj["canvas"]["border"]["bottom"]));
         let da_ety = da_sty + da_height;
-        let da_ms = (da_height/2) - (svg_height*style_obj["membrane"]["membrane_region_height"])/2;
-        let da_me = (da_height/2) + (svg_height*style_obj["membrane"]["membrane_region_height"])/2;
-        let da_mh = svg_height*style_obj["membrane"]["membrane_region_height"];
-        svg_drawarea = {
+        let da_ms = (da_height/2) - (this.svg_height*this.style_obj["membrane"]["membrane_region_height"])/2;
+        let da_me = (da_height/2) + (this.svg_height*this.style_obj["membrane"]["membrane_region_height"])/2;
+        let da_mh = this.svg_height*this.style_obj["membrane"]["membrane_region_height"];
+        this.svg_drawarea = {
             "start_x": da_stx,
             "end_x": da_etx,
             "width": da_width,
@@ -1295,7 +1513,7 @@ function NaView({
             "membrane_height": da_mh,
             "membrane_end": da_me,
         }
-        return svg_drawarea;
+        return this.svg_drawarea;
     }
 
     /**
@@ -1306,7 +1524,7 @@ function NaView({
      * @namespace
      * @yields {Object} JSON containing array_data separated by protein element type (helix, pore, internal and external loops)
      */
-    function drawDataParsing(array_data) {
+    drawDataParsing(array_data) {
         let helices_and_pores = array_data.filter(function(a) {
             return a.type === "helix" || a.type === "pore";
         });
@@ -1350,7 +1568,7 @@ function NaView({
     }
 
     /**
-     * Calculates each domain width from style_obj, determines full interdomain width
+     * Calculates each domain width from this.style_obj, determines full interdomain width
      * @param {Object} svg_drawing_area SVG draw area with borders and membrane main coords
      * @param {Array} domain_names list of domain names
      * @param {Array} helices_and_pores_by_domain Array of Objects from processRawUniProt for helices and pores of each domain
@@ -1359,29 +1577,29 @@ function NaView({
      * @namespace
      * @yields {Object} JSON for total domain width, interdomain width and dictionary for each domain's width
      */
-    function calcDomIDomWidths(svg_drawing_area, domain_names, helices_and_pores_by_domain) {
+    calcDomIDomWidths(svg_drawing_area, domain_names, helices_and_pores_by_domain) {
         let total_domain_width = 0;
         let domain_to_width = {};
         for (let idn = 0; idn < domain_names.length; idn++) {
             let domain_name = domain_names[idn];
             let domain_width = 0;
-            // let domain_spacing_width = (helices_and_pores_by_domain[domain_name].length-1)* style_obj["protein"]["helix_spacing_width"];
-            let domain_spacing_width = style_obj["protein"]["helix_spacing_width"][domain_name].reduce(function(r, a) {
+            // let domain_spacing_width = (helices_and_pores_by_domain[domain_name].length-1)* this.style_obj["protein"]["helix_spacing_width"];
+            let domain_spacing_width = this.style_obj["protein"]["helix_spacing_width"][domain_name].reduce(function(r, a) {
                 return r + a;
             }, 0);
             domain_width += domain_spacing_width;
-            let total_perc_width = style_obj["protein"]["helix_region_width"][domain_name].reduce(function(r, a) {
+            let total_perc_width = this.style_obj["protein"]["helix_region_width"][domain_name].reduce(function(r, a) {
                 return r + a;
             }, 0);
-            let domain_helices_width = svg_width * total_perc_width;
+            let domain_helices_width = this.svg_width * total_perc_width;
             domain_width += domain_helices_width;
-            let domain_pore_width = svg_width * style_obj["protein"]["pore_region_width"][domain_name];
+            let domain_pore_width = this.svg_width * this.style_obj["protein"]["pore_region_width"][domain_name];
             domain_width += domain_pore_width;
             domain_to_width[domain_name] = domain_width;
             total_domain_width += domain_width;
         }
-        let n_ter_width = svg_width * style_obj["protein"]["nter_loop_width"];
-        let c_ter_width = svg_width * style_obj["protein"]["cter_loop_width"];
+        let n_ter_width = this.svg_width * this.style_obj["protein"]["nter_loop_width"];
+        let c_ter_width = this.svg_width * this.style_obj["protein"]["cter_loop_width"];
     
         let inter_domain_width = svg_drawing_area["width"] - (total_domain_width+n_ter_width+c_ter_width);
     
@@ -1395,8 +1613,8 @@ function NaView({
 
     /**
      * Creates scale functions for calculating the interdomain loops widths.<br>
-     * Three setups are possible as defined in the style_obj:<br>
-     * 1. Custom: user defined inside the style_obj <br>
+     * Three setups are possible as defined in the this.style_obj:<br>
+     * 1. Custom: user defined inside the this.style_obj <br>
      * 2. Scaled: according to amino acid number of each loop<br>
      * 3. Fixed: equally divided between the different loops <br>
      * @param {number} total_width the total interdomain width to be distributed
@@ -1406,15 +1624,15 @@ function NaView({
      * @namespace
      * @yields {Function} scale function for calculating the interdomain loops width
      */
-    function distributeLongLoopsWidth(total_width, long_loops_array) {
-        let loops_print_vars = style_obj["protein"]["long_loops_draw_opts"];
+    distributeLongLoopsWidth(total_width, long_loops_array) {
+        let loops_print_vars = this.style_obj["protein"]["long_loops_draw_opts"];
         let w_dist = loops_print_vars["width"];
         // let calc_len = loops_print_vars["calc_len"];
         let length_function;
         switch (w_dist.type) {
             case "custom":
                 length_function = function(context) {
-                    return svg_width * calc_len[context];
+                    return this.svg_width * calc_len[context];
                 }
                 break;
             case "scaled":
@@ -1443,7 +1661,7 @@ function NaView({
      * @namespace
      * @yields {Object} draw area object for drawing the plasmatic membrane
      */
-    function calculateDrawAreaMembrane(drawing_area) {
+    calculateDrawAreaMembrane(drawing_area) {
         let el_stx = drawing_area["start_x"];
         let el_etx = drawing_area["end_x"];
         let el_width = el_etx-el_stx;
@@ -1464,7 +1682,7 @@ function NaView({
     }
 
     /**
-     * Calculates main plot area for drawing N or C terminus loops by using style_obj definitions
+     * Calculates main plot area for drawing N or C terminus loops by using this.style_obj definitions
      * @param {String} terminus_type N or C for the respective terminus type
      * @param {Object} drawing_area  SVG draw area with borders and membrane main coords
      * @param {Object} terminus_data  Object containing the terminus object from processRawUniProt
@@ -1475,17 +1693,17 @@ function NaView({
      * @namespace
      * @yields {Object} draw area object for drawing N or C terminus loops
      */
-    function calculateDrawAreaTermini(terminus_type, drawing_area, terminus_data, total_domain_width,inter_domain_width) {
+    calculateDrawAreaTermini(terminus_type, drawing_area, terminus_data, total_domain_width,inter_domain_width) {
         let return_obj = {
             "objs": [],
             "end_x": 0,
         };
         let el_stx = drawing_area["start_x"];
-        let el_width = svg_width * style_obj["protein"]["nter_loop_width"];
+        let el_width = this.svg_width * this.style_obj["protein"]["nter_loop_width"];
         
         if (terminus_type === "C") {
             el_stx = drawing_area["start_x"]+el_width+(total_domain_width+inter_domain_width);
-            el_width = svg_width * style_obj["protein"]["cter_loop_width"];
+            el_width = this.svg_width * this.style_obj["protein"]["cter_loop_width"];
         }
         let el_etx = el_stx + el_width;
     
@@ -1511,7 +1729,7 @@ function NaView({
     }
 
     /**
-     * Calculates main plot area for drawing domain intramembranar helices or pores by using style_obj definitions
+     * Calculates main plot area for drawing domain intramembranar helices or pores by using this.style_obj definitions
      * @param {String} domain_name Name of current domain (I, II, III, IV)
      * @param {Array} helices_and_pores_array Array of Objects from processRawUniProt for helices and pores of each domain
      * @param {Object} drawing_area SVG draw area with borders and membrane main coords
@@ -1521,7 +1739,7 @@ function NaView({
      * @namespace
      * @yields {Object} draw area object for drawing domain intramembranar helices or pores
      */
-    function calculateDrawAreaHelicesPoresByDomain(domain_name, helices_and_pores_array, drawing_area, cumulative_x) {
+    calculateDrawAreaHelicesPoresByDomain(domain_name, helices_and_pores_array, drawing_area, cumulative_x) {
         let return_obj = {
             "objs": [],
             "end_y": 0,
@@ -1537,19 +1755,19 @@ function NaView({
             let dom_name = helix_or_pore["dom_name"];
             let el_stx = accumulated_x;
             let el_sty = drawing_area["membrane_start"];
-            let el_width = 0; //style_obj["protein"]["helix_width"];
-            let el_height = 0; //style_obj["protein"]["helix_height"];
+            let el_width = 0; //this.style_obj["protein"]["helix_width"];
+            let el_height = 0; //this.style_obj["protein"]["helix_height"];
             if (dom_name !== prev_dom_name) {
                 dom_index = -1;
                 prev_dom_name = dom_name + "";
             }
             dom_index += 1;
             if (helix_or_pore.type === "pore") {
-                el_width = svg_width * style_obj["protein"]["pore_region_width"][domain_name];
-                el_height = svg_height * style_obj["protein"]["pore_region_height"][domain_name];
+                el_width = this.svg_width * this.style_obj["protein"]["pore_region_width"][domain_name];
+                el_height = this.svg_height * this.style_obj["protein"]["pore_region_height"][domain_name];
             } else {
-                el_width = svg_width * style_obj["protein"]["helix_region_width"][domain_name][hcount];
-                el_height = svg_height * style_obj["protein"]["helix_region_height"][domain_name][hcount];
+                el_width = this.svg_width * this.style_obj["protein"]["helix_region_width"][domain_name][hcount];
+                el_height = this.svg_height * this.style_obj["protein"]["helix_region_height"][domain_name][hcount];
                 hcount += 1;
             }
             let positioned_element = {
@@ -1565,10 +1783,10 @@ function NaView({
             return_obj["end_y"] = el_sty+el_height;
 
             accumulated_x += el_width;
-            // let helixpore_spacing = style_obj["protein"]["helix_spacing_width"];
-            let helixpore_spacing = style_obj["protein"]["helix_spacing_width"][dom_name][dom_index];
+            // let helixpore_spacing = this.style_obj["protein"]["helix_spacing_width"];
+            let helixpore_spacing = this.style_obj["protein"]["helix_spacing_width"][dom_name][dom_index];
             if (iel < helices_and_pores_array.length-1) {
-                // helixpore_spacing = (iel+1) * style_obj["protein"]["helix_spacing_width"];
+                // helixpore_spacing = (iel+1) * this.style_obj["protein"]["helix_spacing_width"];
                 accumulated_x += helixpore_spacing;
             }
         }
@@ -1577,7 +1795,7 @@ function NaView({
     }
 
     /**
-     * Inserts processRawUniProt objects containing draw areas in a dictionary according to their N to C termini indexa and style_obj definitions
+     * Inserts processRawUniProt objects containing draw areas in a dictionary according to their N to C termini indexa and this.style_obj definitions
      * @param {Object} protein_dict Object containing each processRawUniProt object according to their N to C termini index
      * @param {Array} array_to_dict Array of processRawUniProt objects containing draw areas
      * @exports NaView
@@ -1585,7 +1803,7 @@ function NaView({
      * @namespace
      * @yields {Object} protein_dict Object containing each processRawUniProt object according to their N to C termini index
      */
-    function indexDrawAreas(protein_dict, array_to_dict){
+    indexDrawAreas(protein_dict, array_to_dict){
         for (let iatd = 0; iatd < array_to_dict.length; iatd++) {
             let obj = array_to_dict[iatd];
             protein_dict[obj.id] = obj.draw_area;
@@ -1594,7 +1812,7 @@ function NaView({
     }
 
     /**
-     * Calculates main plot area for drawing domain loops connecting helices or pores and style_obj definitions
+     * Calculates main plot area for drawing domain loops connecting helices or pores and this.style_obj definitions
      * @param {Array} internal_short_loops_array Array of Objects from processRawUniProt for loops connecting helices and pores of each domain
      * @param {Array} helixpore_objs Array of Objects from processRawUniProt for helices and pores of each domain
      * @param {Object} drawing_area SVG draw area with borders and membrane main coords
@@ -1604,7 +1822,7 @@ function NaView({
      * @yields {Object} draw area object for drawing domain loops connecting helices or pores
      * @namespace 
      */
-    function calculateDrawAreaShortLoopsByDomain(internal_short_loops_array, helixpore_objs, drawing_area, cumulative_x) {
+    calculateDrawAreaShortLoopsByDomain(internal_short_loops_array, helixpore_objs, drawing_area, cumulative_x) {
         let return_obj = {
             "objs": [],
             "width": 0,
@@ -1644,7 +1862,7 @@ function NaView({
     }
 
     /**
-     * Calculates main plot area for drawing interdomain loops by using style_obj definitions
+     * Calculates main plot area for drawing interdomain loops by using this.style_obj definitions
      * @param {Object} long_loop_obj Object containing each processRawUniProt interdomain loop object
      * @param {number} cumulative_x cumulative width of previously determined plot elements (left to right)
      * @param {number} last_y plot y positioning of the last intradomain helix (Helix:6)
@@ -1655,22 +1873,22 @@ function NaView({
      * @yields {Object} draw area object for drawing interdomain loops
      * @namespace
      */
-    function calculateDrawAreaLongLoops(long_loop_obj, cumulative_x, last_y, longLoopWidthF, drawing_area) {
+    calculateDrawAreaLongLoops(long_loop_obj, cumulative_x, last_y, longLoopWidthF, drawing_area) {
         let return_obj = {
             "objs": [],
             "end_x": 0,
         };
         let accumulated_x = cumulative_x;
         
-        let prev_dom_helix_data = style_obj["protein"]["helix_region_width"][long_loop_obj.prev_dom_name];
-        let prev_dom_helix_data_sub = (svg_width * (prev_dom_helix_data[prev_dom_helix_data.length-1])/2)
-        let next_dom_helix_data = style_obj["protein"]["helix_region_width"][long_loop_obj.next_dom_name];
-        let next_dom_helix_data_add = (svg_width * (next_dom_helix_data[0])/2)
+        let prev_dom_helix_data = this.style_obj["protein"]["helix_region_width"][long_loop_obj.prev_dom_name];
+        let prev_dom_helix_data_sub = (this.svg_width * (prev_dom_helix_data[prev_dom_helix_data.length-1])/2)
+        let next_dom_helix_data = this.style_obj["protein"]["helix_region_width"][long_loop_obj.next_dom_name];
+        let next_dom_helix_data_add = (this.svg_width * (next_dom_helix_data[0])/2)
     
         let el_stx = accumulated_x - prev_dom_helix_data_sub;
     
         let context_data = long_loop_obj;
-        if (style_obj["protein"]["long_loops_draw_opts"]["width"]["type"] !== "custom") {
+        if (this.style_obj["protein"]["long_loops_draw_opts"]["width"]["type"] !== "custom") {
             context_data = long_loop_obj.aanum;
         }
     
@@ -1723,36 +1941,36 @@ function NaView({
      * @namespace
      * @yields {Object} Object containing draw areas for every protein and membrane elements
      */
-    function calcElementsDrawAreas(array_data, svg_drawing_area, domain_names, helices_and_pores_by_domain, internal_short_loops_by_domain, long_loops_by_prevdomain, longLoopWidthF, total_domain_width, inter_domain_width) {
+    calcElementsDrawAreas(array_data, svg_drawing_area, domain_names, helices_and_pores_by_domain, internal_short_loops_by_domain, long_loops_by_prevdomain, longLoopWidthF, total_domain_width, inter_domain_width) {
         let indexed_drawareas = {
             "protein": {},
             "membrane": undefined
         };
         let plines = [];
         
-        let membrane_drawarea = calculateDrawAreaMembrane(svg_drawing_area);
+        let membrane_drawarea = this.calculateDrawAreaMembrane(svg_drawing_area);
         indexed_drawareas.membrane = membrane_drawarea;
         
-        let cumulative_x = svg_drawing_area["start_x"] + (svg_width*style_obj["protein"]["nter_loop_width"]); //cter_loop_width
+        let cumulative_x = svg_drawing_area["start_x"] + (this.svg_width*this.style_obj["protein"]["nter_loop_width"]); //cter_loop_width
     
         let n_terminus_data = array_data[0];
-        let n_terminus_drawarea = calculateDrawAreaTermini("N", svg_drawing_area, n_terminus_data,total_domain_width, inter_domain_width);
+        let n_terminus_drawarea = this.calculateDrawAreaTermini("N", svg_drawing_area, n_terminus_data,total_domain_width, inter_domain_width);
         // indexed_drawareas.protein[0] = n_terminus_drawarea.objs[0].draw_area;
         indexed_drawareas.protein[1] = n_terminus_drawarea.objs[0].draw_area;
     
         let c_terminus_data = array_data[array_data.length-1];
-        let c_terminus_drawarea = calculateDrawAreaTermini("C", svg_drawing_area, c_terminus_data,total_domain_width, inter_domain_width);
+        let c_terminus_drawarea = this.calculateDrawAreaTermini("C", svg_drawing_area, c_terminus_data,total_domain_width, inter_domain_width);
         // indexed_drawareas.protein[array_data.length-1] = c_terminus_drawarea.objs[c_terminus_drawarea.objs.length-1].draw_area;
         indexed_drawareas.protein[array_data.length] = c_terminus_drawarea.objs[c_terminus_drawarea.objs.length-1].draw_area;
     
         for (let idn = 0; idn < domain_names.length; idn++) {
             let domain_name = domain_names[idn];
     
-            let domain_assignment_results_helixpore = calculateDrawAreaHelicesPoresByDomain(domain_name, helices_and_pores_by_domain[domain_name], svg_drawing_area, cumulative_x);
-            indexed_drawareas.protein = indexDrawAreas(indexed_drawareas.protein, domain_assignment_results_helixpore.objs);
+            let domain_assignment_results_helixpore = this.calculateDrawAreaHelicesPoresByDomain(domain_name, helices_and_pores_by_domain[domain_name], svg_drawing_area, cumulative_x);
+            indexed_drawareas.protein = this.indexDrawAreas(indexed_drawareas.protein, domain_assignment_results_helixpore.objs);
     
-            let domain_assignment_results_shortloops = calculateDrawAreaShortLoopsByDomain(internal_short_loops_by_domain[domain_name], domain_assignment_results_helixpore.objs, svg_drawing_area, cumulative_x);
-            indexed_drawareas.protein = indexDrawAreas(indexed_drawareas.protein, domain_assignment_results_shortloops.objs);
+            let domain_assignment_results_shortloops = this.calculateDrawAreaShortLoopsByDomain(internal_short_loops_by_domain[domain_name], domain_assignment_results_helixpore.objs, svg_drawing_area, cumulative_x);
+            indexed_drawareas.protein = this.indexDrawAreas(indexed_drawareas.protein, domain_assignment_results_shortloops.objs);
     
             // cumulative_x += domain_assignment_results_helixpore.width;
             // cumulative_x += domain_to_width[domain_name];
@@ -1761,8 +1979,8 @@ function NaView({
             let last_y = domain_assignment_results_helixpore.end_y;
             let long_loop_obj = long_loops_by_prevdomain[domain_name];
             if (long_loop_obj) {
-                let inter_domain_assignment_results = calculateDrawAreaLongLoops(long_loop_obj, cumulative_x, last_y, longLoopWidthF, svg_drawing_area);
-                indexed_drawareas.protein = indexDrawAreas(indexed_drawareas.protein, inter_domain_assignment_results.objs);
+                let inter_domain_assignment_results = this.calculateDrawAreaLongLoops(long_loop_obj, cumulative_x, last_y, longLoopWidthF, svg_drawing_area);
+                indexed_drawareas.protein = this.indexDrawAreas(indexed_drawareas.protein, inter_domain_assignment_results.objs);
                 cumulative_x = inter_domain_assignment_results.end_x;
             }
         }
@@ -1771,11 +1989,11 @@ function NaView({
 
     /**
      * Draws whole plot using various accessory functions
-     * @param {Array} parsed_protein_data data generated from processRawUniProt containing draw areas
+     * @param {Array} this.parsed_protein_data data generated from processRawUniProt containing draw areas
      * @exports NaView
      * @name drawEverything
      * @namespace
-     * @see createFillRules
+     * @see createfillRules
      * @see draw_membrane
      * @see mergeDrawData
      * @see createResidData
@@ -1793,88 +2011,88 @@ function NaView({
      * @see draw_residue_relations
      * @see draw_symbols
      */
-    function drawEverything(parsed_protein_data) {
-        let membrane_data = parsed_protein_data.membrane;
-        for (const membrane_draw_key in style_obj.membrane.membrane_draw_opts) {
-            if (style_obj.membrane.membrane_draw_opts.hasOwnProperty(membrane_draw_key)) {
-                membrane_data[membrane_draw_key] = style_obj.membrane.membrane_draw_opts[membrane_draw_key];
+    drawEverything(parsed_protein_data) {
+        let membrane_data = this.parsed_protein_data.membrane;
+        for (const membrane_draw_key in this.style_obj.membrane.membrane_draw_opts) {
+            if (this.style_obj.membrane.membrane_draw_opts.hasOwnProperty(membrane_draw_key)) {
+                membrane_data[membrane_draw_key] = this.style_obj.membrane.membrane_draw_opts[membrane_draw_key];
             }
         }
-        current_resid_properties = deepCopy(parsed_protein_data.resid_properties);
-        if (parsed_protein_data.hasOwnProperty("color_rules")) {
-            createFillRules(parsed_protein_data.color_rules);
+        this.current_resid_properties = this.deepCopy(this.parsed_protein_data.resid_properties);
+        if (this.parsed_protein_data.hasOwnProperty("color_rules")) {
+            this.createfillRules(this.parsed_protein_data.color_rules);
         }
-        draw_membrane(membrane_data);
-        let helices_data = parsed_protein_data.data.filter(function(a) {
+        this.draw_membrane(membrane_data);
+        let helices_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "helix";
         });
-        let helices_pores_data = parsed_protein_data.data.filter(function(a) {
+        let helices_pores_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "helix" || a.type === "pore";
         });
-        let short_loop_data = parsed_protein_data.data.filter(function(a) {
+        let short_loop_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "loop" && a.dom_name !== false;
         });
-        let longloop_data = parsed_protein_data.data.filter(function(a) {
+        let longloop_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "loop" && a.dom_name === false && a.prev_dom_name && a.next_dom_name;
         });
-        let nter_loop_data = parsed_protein_data.data.filter(function(a) {
+        let nter_loop_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "loop" && a.dom_name === false && a.prev_dom_name === false && !a.next_dom_name;
         });
-        let cter_loop_data = parsed_protein_data.data.filter(function(a) {
+        let cter_loop_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "loop" && a.dom_name === false && a.prev_dom_name && !a.next_dom_name;
         });
-        let all_loop_data = parsed_protein_data.data.filter(function(a) {
+        let all_loop_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "loop";
         });
-        let pores_data = parsed_protein_data.data.filter(function(a) {
+        let pores_data = this.parsed_protein_data.data.filter(function(a) {
             return a.type === "pore";
         });
 
-        // let n_terminus_note = parsed_protein_data.data[0].note;
+        // let n_terminus_note = this.parsed_protein_data.data[0].note;
 
-        helices_data = mergeDrawData("helix", helices_data);
-        helices_data = createResidData(helices_data);
-        helices_data = calculateResidOrientation(helices_data, all_loop_data);
-        draw_helices(helices_data);
+        helices_data = this.mergeDrawData("helix", helices_data, this);
+        helices_data = this.createResidData(helices_data);
+        helices_data = this.calculateResidOrientation(helices_data, all_loop_data);
+        this.draw_helices(helices_data);
 
-        short_loop_data = mergeDrawData("short_loops", short_loop_data);
-        short_loop_data = createResidData(short_loop_data);
-        short_loop_data = gen_shortloop_anchordata(short_loop_data, helices_pores_data);
-        draw_shortLoops(short_loop_data);
+        short_loop_data = this.mergeDrawData("short_loops", short_loop_data, this);
+        short_loop_data = this.createResidData(short_loop_data);
+        short_loop_data = this.gen_shortloop_anchordata(short_loop_data, helices_pores_data);
+        this.draw_shortLoops(short_loop_data);
 
-        pores_data = mergeDrawData("pore_loops", pores_data);
-        pores_data = createResidData(pores_data);
-        pores_data = gen_poreloop_anchordata(pores_data, short_loop_data);
-        draw_poreLoops(pores_data);
+        pores_data = this.mergeDrawData("pore_loops", pores_data, this);
+        pores_data = this.createResidData(pores_data);
+        pores_data = this.gen_poreloop_anchordata(pores_data, short_loop_data);
+        this.draw_poreLoops(pores_data);
 
-        longloop_data = mergeDrawData("long_loops", longloop_data);
-        longloop_data = createResidData(longloop_data);
-        longloop_data = gen_longloop_anchordata(longloop_data, helices_data);
-        draw_longLoops(longloop_data);
+        longloop_data = this.mergeDrawData("long_loops", longloop_data, this);
+        longloop_data = this.createResidData(longloop_data);
+        longloop_data = this.gen_longloop_anchordata(longloop_data, helices_data);
+        this.draw_longLoops(longloop_data);
 
-        let sorted_helices = deepCopy(helices_data).sort(function(a, b) {
+        let sorted_helices = this.deepCopy(helices_data).sort(function(a, b) {
             return a.start - b.start;
         });
 
-        nter_loop_data = mergeDrawData("nter_loop", nter_loop_data);
-        nter_loop_data = createResidData(nter_loop_data);
-        nter_loop_data = gen_termini_anchordata(nter_loop_data[0],sorted_helices[0], "N");
-        draw_termini(nter_loop_data);
+        nter_loop_data = this.mergeDrawData("nter_loop", nter_loop_data, this);
+        nter_loop_data = this.createResidData(nter_loop_data);
+        nter_loop_data = this.gen_termini_anchordata(nter_loop_data[0],sorted_helices[0], "N");
+        this.draw_termini(nter_loop_data);
 
-        cter_loop_data = mergeDrawData("cter_loop", cter_loop_data);
-        cter_loop_data = createResidData(cter_loop_data);
-        cter_loop_data = gen_termini_anchordata(cter_loop_data[0],sorted_helices[sorted_helices.length-1], "C");
-        draw_termini(cter_loop_data);
-        parsed_protein_data.residue_element_centroids = createResidElementToCentroidData();
+        cter_loop_data = this.mergeDrawData("cter_loop", cter_loop_data, this);
+        cter_loop_data = this.createResidData(cter_loop_data);
+        cter_loop_data = this.gen_termini_anchordata(cter_loop_data[0],sorted_helices[sorted_helices.length-1], "C");
+        this.draw_termini(cter_loop_data);
+        this.parsed_protein_data.residue_element_centroids = this.createResidElementToCentroidData();
 
-        if (parsed_protein_data.hasOwnProperty("residue_relations")) {
-            draw_residue_relations(parsed_protein_data.residue_relations, parsed_protein_data.residue_element_centroids,parsed_protein_data.data);
+        if (this.parsed_protein_data.hasOwnProperty("residue_relations")) {
+            this.draw_residue_relations(this.parsed_protein_data.residue_relations, this.parsed_protein_data.residue_element_centroids,this.parsed_protein_data.data);
         }
-        if (parsed_protein_data.hasOwnProperty("draw_symbols")) {
-            draw_symbols(parsed_protein_data.draw_symbols, parsed_protein_data.residue_element_centroids,parsed_protein_data.resid_properties,parsed_protein_data.data);
+        if (this.parsed_protein_data.hasOwnProperty("draw_symbols")) {
+            this.draw_symbols(this.parsed_protein_data.draw_symbols, this.parsed_protein_data.residue_element_centroids,this.parsed_protein_data.resid_properties,this.parsed_protein_data.data);
         }
-        if (parsed_protein_data.hasOwnProperty("color_rules")) {
-            if (parsed_protein_data.color_rules.length > 0) {
+        if (this.parsed_protein_data.hasOwnProperty("color_rules")) {
+            if (this.parsed_protein_data.color_rules.length > 0) {
                 d3.selectAll(".element_path").style("visibility", "hidden");
                 d3.selectAll(".residue_path").style("visibility", "");
             }
@@ -1882,7 +2100,7 @@ function NaView({
     }
 
     /**
-     * Resets global fillRules object and generates a new color filling object for each user defined color rule.<br>
+     * Resets global this.fillRules object and generates a new color filling object for each user defined color rule.<br>
      * When multiple user defined color rules are applied to the same residue/element, the last rule takes precedence.<br>
      * Color rules allow the selection of residues or elements (helices, pore, loops) by the "selection,color" syntax.<br>
      * Multiple "selection" possibilities are allowed including: <br>
@@ -1909,10 +2127,10 @@ function NaView({
      * @param {Array} data_color list of Strings inputted from user to generate per element/residue color filling rules
      * @namespace
      * @exports NaView
-     * @name createFillRules
+     * @name createfillRules
      */
-    function createFillRules(data_color) {
-        fillRules = [];
+    createfillRules(data_color) {
+        this.fillRules = [];
         for (let idc = 0; idc < data_color.length; idc++) {
             let fillObj = {
                 "check_keys": [],
@@ -1943,12 +2161,12 @@ function NaView({
                     } else if (color_rule_type === "Id:") {
                         fillObj.check_keys.push("id");
                         fillObj.check_values.push([parseInt(color_number)]);
-                    } else if (Object.keys(one_to_three).indexOf(color_rule_type) > -1) {
+                    } else if (Object.keys(this.one_to_three).indexOf(color_rule_type) > -1) {
                         fillObj.check_keys.push("res_ind");
                         fillObj.check_values.push([parseInt(color_number)]);
                         fillObj.check_keys.push("res_1");
                         fillObj.check_values.push([color_rule_type]);
-                    } else if (Object.keys(three_to_one).indexOf(color_rule_type) > -1) {
+                    } else if (Object.keys(this.three_to_one).indexOf(color_rule_type) > -1) {
                         fillObj.check_keys.push("res_ind");
                         fillObj.check_values.push([parseInt(color_number)]);
                         fillObj.check_keys.push("res_3");
@@ -1960,15 +2178,15 @@ function NaView({
                 } else if (color_rule.includes("Domain:")) {
                     fillObj.check_keys.push("dom_name");
                     fillObj.check_values.push([color_rule.split("Domain:")[1]]);
-                } else if (Object.keys(one_to_three).indexOf(color_rule) > -1)  {
+                } else if (Object.keys(this.one_to_three).indexOf(color_rule) > -1)  {
                     fillObj.check_keys.push("res_1");
                     fillObj.check_values.push([color_rule]);
-                } else if (Object.keys(three_to_one).indexOf(color_rule) > -1) {
+                } else if (Object.keys(this.three_to_one).indexOf(color_rule) > -1) {
                     fillObj.check_keys.push("res_3");
                     fillObj.check_values.push([color_rule]);
                 } else if (color_rule === "ALL") {
                     fillObj.check_keys.push("res_3");
-                    fillObj.check_values.push(deepCopy(Object.keys(three_to_one)));
+                    fillObj.check_values.push(this.deepCopy(Object.keys(this.three_to_one)));
                 }
             }
             let color_to_map = selection_text.split(",")[1];
@@ -1979,20 +2197,22 @@ function NaView({
             } else {
                 fillObj.color = color_to_map;
             }
-            fillRules.push(fillObj);
+            this.fillRules.push(fillObj);
         }
+        console.log("this.fillRules");
+        console.log(this.fillRules);
     }
 
     /**
      * Plots membrane as a rectangle
-     * @param {Object} data draw area Object merged to style_obj for drawing membrane
+     * @param {Object} data draw area Object merged to this.style_obj for drawing membrane
      * @param {String} dataId membrane main g element id attribute 
      * @namespace
      * @exports NaView
      * @name draw_membrane_box
      */
-    function draw_membrane_box(data, dataId) {
-        let svg_element = d3.select("#"+svg_id)
+    draw_membrane_box(data, dataId) {
+        let svg_element = d3.select("#"+this.svg_id)
             .append("g")
             .attr("class", "membrane_group")
             .append("rect")
@@ -2025,7 +2245,7 @@ function NaView({
      * @name gen_lipid_head_data
      * @yields {Array} list of plot related data for generating lipid head ellipse drawings
      */
-    function gen_lipid_head_data(number_of_lipids, shead_x, head_y1, head_y2, head_fill, head_opacity,head_stroke,head_stroke_s,lip_rad,lip_rad_y) {
+    gen_lipid_head_data(number_of_lipids, shead_x, head_y1, head_y2, head_fill, head_opacity,head_stroke,head_stroke_s,lip_rad,lip_rad_y) {
         let head_array = [];
         for (let lip = 0; lip < number_of_lipids; lip++) {
             let head_x = (lip*lip_rad*2) + shead_x;
@@ -2036,7 +2256,7 @@ function NaView({
                 "rx": lip_rad,
                 "ry": lip_rad_y,
                 // "ry": lip_rad,
-                // "ry": lip_rad*(svg_height/svg_width),
+                // "ry": lip_rad*(this.svg_height/this.svg_width),
                 "fill": head_fill,
                 "opacity": head_opacity,
                 "stroke": head_stroke,
@@ -2050,7 +2270,7 @@ function NaView({
                 "rx": lip_rad,
                 "ry": lip_rad_y,
                 // "ry": lip_rad,
-                // "ry": lip_rad*(svg_height/svg_width),
+                // "ry": lip_rad*(this.svg_height/this.svg_width),
                 "fill": head_fill,
                 "opacity": head_opacity,
                 "stroke": head_stroke,
@@ -2079,7 +2299,7 @@ function NaView({
      * @name ellipsis_equation_y
      * @yields {number} y coordinate of a point in the surface of a sphere.
      */
-    function ellipsis_equation_y(gx, cx, cy, rx, ry) {
+    ellipsis_equation_y(gx, cx, cy, rx, ry) {
         return (Math.sqrt((1 - Math.pow((gx-cx),2)/Math.pow(rx,2)) * Math.pow(ry,2)))+cy;
     }
 
@@ -2102,7 +2322,7 @@ function NaView({
      * @name gen_lipid_tail_data
      * @yields {Array} list of plot related data for generating lipid tail path drawings
      */
-    function gen_lipid_tail_data(head_data, lipid_tail_number, lipid_break_num, tail_max_length, tail_head_dist,tail_fill,tail_opacity,tail_stroke,tail_stroke_s) {
+    gen_lipid_tail_data(head_data, lipid_tail_number, lipid_break_num, tail_max_length, tail_head_dist,tail_fill,tail_opacity,tail_stroke,tail_stroke_s) {
         let lipid_data = [];
         for (let ihd = 0; ihd < head_data.length; ihd++) {
             let h_data = head_data[ihd];
@@ -2123,7 +2343,7 @@ function NaView({
                 let one_third_x = h_data.cx-h_data.rx + (h_data.rx/1.8);
                 let two_thirds_x = h_data.cx+h_data.rx-(h_data.rx/1.8);
 
-                let other_y = ellipsis_equation_y(one_third_x, h_data.cx, h_data.cy, h_data.rx, h_data.ry);
+                let other_y = this.ellipsis_equation_y(one_third_x, h_data.cx, h_data.cy, h_data.rx, h_data.ry);
                 // let other_y = h_data.cy;
                 // other_y += (tail_stroke_s)/2;
                 // other_y += (h_data.stroke_size);
@@ -2186,17 +2406,17 @@ function NaView({
      * Plots membrane as a lipid bilayer
      * @see gen_lipid_head_data
      * @see gen_lipid_tail_data
-     * @param {Object} data data object for membrane draw area object merged to style_obj definitions
+     * @param {Object} data data object for membrane draw area object merged to this.style_obj definitions
      * @param {String} dataId membrane main g element id attribute 
      * @param {number} tail_head_dist deprecated: height ratio between head and tail groups
      * @namespace
      * @exports NaView
      * @name draw_membrane_lipid
      */
-    function draw_membrane_lipid(data, dataId, tail_head_dist) {
+    draw_membrane_lipid(data, dataId, tail_head_dist) {
 
-        let lipid_head_radius_width = data["lipid_head_radius_width"] * svg_width;
-        let ratio_wh = svg_height/svg_width;
+        let lipid_head_radius_width = data["lipid_head_radius_width"] * this.svg_width;
+        let ratio_wh = this.svg_height/this.svg_width;
         let lipid_head_radius_height = lipid_head_radius_width * ratio_wh * 2;
 
         let number_of_lipids = data["width"] / (lipid_head_radius_width*2);
@@ -2210,10 +2430,10 @@ function NaView({
         let head_stroke_s = data["hstroke_s"];
         let head_opacity = data["hopacity"];
 
-        let head_data = gen_lipid_head_data(number_of_lipids, shead_x, head_y, head_y2, head_fill, head_opacity,head_stroke,head_stroke_s, lipid_head_radius_width, lipid_head_radius_height);
+        let head_data = this.gen_lipid_head_data(number_of_lipids, shead_x, head_y, head_y2, head_fill, head_opacity,head_stroke,head_stroke_s, lipid_head_radius_width, lipid_head_radius_height);
 
-        let membrane_mid_point = svg_drawarea["height"];
-        let tail_max_length = svg_drawarea["membrane_height"]/2 - ((lipid_head_radius_height*2) + (svg_height * data["lipid_tail_spacing"]) );
+        let membrane_mid_point = this.svg_drawarea["height"];
+        let tail_max_length = this.svg_drawarea["membrane_height"]/2 - ((lipid_head_radius_height*2) + (this.svg_height * data["lipid_tail_spacing"]) );
         if (!tail_head_dist) {
             tail_head_dist = 0.1;
         }
@@ -2221,10 +2441,10 @@ function NaView({
         let tail_opacity = data["topacity"];
         let tail_stroke = data["tstroke"];
         let tail_stroke_s = data["tstroke_s"];
-        let tail_data = gen_lipid_tail_data(head_data, data["lipid_tail_number"], data["lipid_tail_breaks"], tail_max_length, tail_head_dist, tail_fill, tail_opacity,tail_stroke,tail_stroke_s);
+        let tail_data = this.gen_lipid_tail_data(head_data, data["lipid_tail_number"], data["lipid_tail_breaks"], tail_max_length, tail_head_dist, tail_fill, tail_opacity,tail_stroke,tail_stroke_s);
 
         //draw membrane heads
-        let membrane_group = d3.select("#"+svg_id)
+        let membrane_group = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", "membrane_group");
 
@@ -2284,34 +2504,34 @@ function NaView({
      * Draws membrane object as either a single rectangle (mode box) or as a lipid bilayer
      * @see draw_membrane_box
      * @see draw_membrane_lipid
-     * @param {Object} data data object for membrane draw area object merged to style_obj definitions
+     * @param {Object} data data object for membrane draw area object merged to this.style_obj definitions
      * @namespace
      * @exports NaView
      * @name draw_membrane
      */
-    function draw_membrane(data) {
+    draw_membrane(data) {
         //membrane can be box or lipid
-        if (style_obj.membrane.membrane_mode === "box") {
-            draw_membrane_box(data, "membrane");
+        if (this.style_obj.membrane.membrane_mode === "box") {
+            this.draw_membrane_box(data, "membrane");
             // draw_membrane_box(data, "membrane", "membrane");
-        } else if (style_obj.membrane.membrane_mode === "lipid") {
+        } else if (this.style_obj.membrane.membrane_mode === "lipid") {
             // draw_membrane_lipid(data, "membrane", "membrane");
-            draw_membrane_lipid(data, "membrane");
+            this.draw_membrane_lipid(data, "membrane");
         }
     }
 
     /**
-     * Merges data from the user defined style_obj draw_opts to the current residue/element selection
-     * @param {String} mergeType element name in the style_obj ("element_name"+draw_opts)
+     * Merges data from the user defined this.style_obj draw_opts to the current residue/element selection
+     * @param {String} mergeType element name in the this.style_obj ("element_name"+draw_opts)
      * @param {Array} data data array for a given element (helices, pores, intra or inter domain loops)
-     * @yields {Array} data array for a given element with user defined style_obj draw_opts definitions
+     * @yields {Array} data array for a given element with user defined this.style_obj draw_opts definitions
      * @namespace
      * @exports NaView
      * @name mergeDrawData
      */
-    function mergeDrawData(mergeType, data) {
+    mergeDrawData(mergeType, data, that) {
         let drawKey = mergeType+"_draw_opts";
-        let drawDict = style_obj["protein"][drawKey];
+        let drawDict = that.style_obj["protein"][drawKey];
         let properties = Object.keys(drawDict);
         if (drawDict.type === "dicts") {
             for (let id = 0; id < data.length; id++) {
@@ -2352,15 +2572,15 @@ function NaView({
      * @exports NaView
      * @name createResidData
      */
-    function createResidData(data) {
+    createResidData(data) {
         for (let id = 0; id < data.length; id++) {
             data[id].resids = [];
             let resids = data[id].aas.split("");
             let resid_index = data[id].start;
             for (let ir = 0; ir < resids.length; ir++) {
-                resid_obj = {
+                let resid_obj = {
                     "res_1": resids[ir],
-                    "res_3": one_to_three[resids[ir]],
+                    "res_3": this.one_to_three[resids[ir]],
                     "res_ind": resid_index,
                 }
                 data[id].resids.push(resid_obj);
@@ -2379,7 +2599,7 @@ function NaView({
      * @name calculateResidOrientation 
      * @yields {Array} helices data generated from processRawUniProt with additional residue orientation variable
      */
-    function calculateResidOrientation(helices_data, all_loop_data) {
+    calculateResidOrientation(helices_data, all_loop_data) {
         let all_loop_data_by_domain_position = all_loop_data.reduce( (reduce_dict, a) => {
             reduce_dict[a.id] = a;
             return reduce_dict;
@@ -2401,11 +2621,25 @@ function NaView({
      * @exports NaView
      * @name createResidElementToCentroidData 
      */
-    function createResidElementToCentroidData() {
+    createResidElementToCentroidData() {
         let residueCentroidDict = {};
         let all_residue_paths = d3.selectAll(".single_residue_path");
         let done_resind = [];
+        let svg_height = this.svg_height;
+        let deepCopy = this.deepCopy;
+        let that = this;
+        let mergeDrawData = this.mergeDrawData;
         all_residue_paths.each(function(d) {
+            let dom_aname = "";
+            if (d.type === "helix") {
+                dom_aname = "Domain" +d.dom_name+";Helix"+d.dom_itype;
+            } else if (d.type === "pore") {
+                dom_aname = "Domain" +d.dom_name+";Pore";
+            } else if (d.type === "loop" && d.dom_name) {
+                dom_aname = "Domain" +d.dom_name+";Loop"+d.dom_itype;
+            } else {
+                dom_aname = "InterDomain" +d.dom_iname+";Loop";
+            }
             let resname = d3.select(this).attr("resname");
             let res_ind = d.res_ind;
             if (done_resind.indexOf(d.res_ind) === -1) {
@@ -2424,8 +2658,9 @@ function NaView({
                     "resname": resname,
                     "path_data": [deepCopy(d)],
                     "point": d.centroid,
+                    "dom_aname":dom_aname,
                 }
-                to_dict_obj = mergeDrawData("residue_centroid", [to_dict_obj])[0];
+                to_dict_obj = mergeDrawData("residue_centroid", [to_dict_obj], that)[0];
                 for (const ky in d) {
                     if (d.hasOwnProperty(ky) && to_dict_obj.hasOwnProperty(ky) === false) {
                         to_dict_obj[ky] = d[ky];
@@ -2486,7 +2721,7 @@ function NaView({
                 "path_data": [deepCopy(d)],
                 "point": element_centroid,
             }
-            let new_to_dict_obj = mergeDrawData("residue_centroid", [to_dict_obj])[0];
+            let new_to_dict_obj = mergeDrawData("residue_centroid", [to_dict_obj], that)[0];
             new_to_dict_obj["circle_radius"] = "5px";
             residueCentroidDict[elname] = new_to_dict_obj;
         });
@@ -2508,7 +2743,7 @@ function NaView({
      * @param {Array} helices_pores_data helices and pore loop data generated from processRawUniProt 
      * @yields {Array} intradomain short loop data generated from processRawUniProt with additional x,y helix anchors
      */
-    function gen_shortloop_anchordata(short_loop_data, helices_pores_data) {
+    gen_shortloop_anchordata(short_loop_data, helices_pores_data) {
         let helices_and_pores_by_domain_position = helices_pores_data.reduce( (reduce_dict, a) => {
             reduce_dict[a.dom_name+"_"+a.dom_i] = a;
             return reduce_dict;
@@ -2543,7 +2778,7 @@ function NaView({
                     short_loop_data[isld].anchorage.p2 = next_element.anchor.bottom;
                 }
             }
-            short_loop_data[isld].anchorage.dist = euclideanDistance(short_loop_data[isld].anchorage.p1, short_loop_data[isld].anchorage.p2);
+            short_loop_data[isld].anchorage.dist = this.euclideanDistance(short_loop_data[isld].anchorage.p1, short_loop_data[isld].anchorage.p2);
         }
     //     calc_len
     // shape
@@ -2559,7 +2794,7 @@ function NaView({
      * @param {Array} short_loop_data intradomain short loop data generated from processRawUniProt 
      * @yields {Array} intradomain pore loop data generated from processRawUniProt with additional x,y short loop anchors
      */
-    function gen_poreloop_anchordata(pores_data, short_loop_data) {
+    gen_poreloop_anchordata(pores_data, short_loop_data) {
         let short_loop_by_domain_position = short_loop_data.reduce( (reduce_dict, a) => {
             reduce_dict[a.dom_name+"_"+a.dom_i] = a;
             return reduce_dict;
@@ -2575,9 +2810,9 @@ function NaView({
             }
             let previous_element = short_loop_by_domain_position[pore_dom_name+"_"+(pore_dom_i-1)];
             let next_element = short_loop_by_domain_position[pore_dom_name+"_"+(pore_dom_i+1)];
-            pores_data[ipd].anchorage.p1 = deepCopy(previous_element.anchorage.p2);
-            pores_data[ipd].anchorage.p2 = deepCopy(next_element.anchorage.p1);
-            pores_data[ipd].anchorage.dist = euclideanDistance(pores_data[ipd].anchorage.p1, pores_data[ipd].anchorage.p2);
+            pores_data[ipd].anchorage.p1 = this.deepCopy(previous_element.anchorage.p2);
+            pores_data[ipd].anchorage.p2 = this.deepCopy(next_element.anchorage.p1);
+            pores_data[ipd].anchorage.dist = this.euclideanDistance(pores_data[ipd].anchorage.p1, pores_data[ipd].anchorage.p2);
         }
         return pores_data;
     }
@@ -2591,7 +2826,7 @@ function NaView({
      * @param {Array} helices_data helices data generated from processRawUniProt 
      * @yields {Array} interdomain long loop data generated from processRawUniProt with additional x,y helix anchors
      */
-    function gen_longloop_anchordata(longloop_data, helices_data) {
+    gen_longloop_anchordata(longloop_data, helices_data) {
         let helices_by_domain_position = helices_data.reduce( (reduce_dict, a) => {
             reduce_dict[a.dom_name+"_"+a.dom_i] = a;
             return reduce_dict;
@@ -2619,7 +2854,7 @@ function NaView({
             let next_element = helices_by_domain_position[next_dom_name+"_"+1];
             longloop_data[illd].anchorage.p1 = previous_element.anchor.bottom;
             longloop_data[illd].anchorage.p2 = next_element.anchor.bottom;
-            longloop_data[illd].anchorage.dist = euclideanDistance(longloop_data[illd].anchorage.p1, longloop_data[illd].anchorage.p2);
+            longloop_data[illd].anchorage.dist = this.euclideanDistance(longloop_data[illd].anchorage.p1, longloop_data[illd].anchorage.p2);
         }
         return longloop_data;
     }
@@ -2634,31 +2869,31 @@ function NaView({
      * @param {String} termini_type "N" or "C" for N-terminal or C-terminal loop
      * @yields {Object} termini loop data generated from processRawUniProt with additional x,y helix anchors
      */
-    function gen_termini_anchordata(termini_data, neighboring_helix, termini_type) {
+    gen_termini_anchordata(termini_data, neighboring_helix, termini_type) {
         let current_point;
         termini_data.terminus_type = termini_type;
         if (termini_type === "N") {
-            if (style_obj.protein.nter_loop_draw_opts.calc_len.calc.start_loop === "membrane") {
+            if (this.style_obj.protein.nter_loop_draw_opts.calc_len.calc.start_loop === "membrane") {
                 current_point = [termini_data.draw_area.start_x,termini_data.draw_area.start_y];
-            } else if (style_obj.protein.nter_loop_draw_opts.calc_len.calc.start_loop === "edge") {
+            } else if (this.style_obj.protein.nter_loop_draw_opts.calc_len.calc.start_loop === "edge") {
                 current_point = [termini_data.draw_area.start_x,termini_data.draw_area.end_y];
             }
             termini_data.anchorage = {
                 "p1": current_point,
                 "p2": neighboring_helix.anchor.bottom,
-                "dist": euclideanDistance(current_point, neighboring_helix.anchor.bottom)
+                "dist": this.euclideanDistance(current_point, neighboring_helix.anchor.bottom)
             }
         } else {
             // current_point = [termini_data.draw_area.end_x,termini_data.draw_area.end_y];
-            if (style_obj.protein.cter_loop_draw_opts.calc_len.calc.start_loop === "membrane") {
+            if (this.style_obj.protein.cter_loop_draw_opts.calc_len.calc.start_loop === "membrane") {
                 current_point = [termini_data.draw_area.end_x,termini_data.draw_area.start_y];
-            } else if (style_obj.protein.cter_loop_draw_opts.calc_len.calc.start_loop === "edge") {
+            } else if (this.style_obj.protein.cter_loop_draw_opts.calc_len.calc.start_loop === "edge") {
                 current_point = [termini_data.draw_area.end_x,termini_data.draw_area.end_y];
             }
             termini_data.anchorage = {
                 "p1": neighboring_helix.anchor.bottom,
                 "p2": current_point,
-                "dist": euclideanDistance(current_point, neighboring_helix.anchor.bottom)
+                "dist": this.euclideanDistance(current_point, neighboring_helix.anchor.bottom)
             }
         }
         return termini_data;
@@ -2668,7 +2903,7 @@ function NaView({
     /**
      * Generates a d3.scaleLinear color scale from user inputted color filling rules that use a
      * ",by:property,domain,range" syntax.
-     * @see createFillRules
+     * @see createfillRules
      * @param {String} fillproperty residue property name to map color scale to
      * @param {Array} fillrange fill scale linear color range
      * @param {Array} filldomain fill scale linear color domain. "min" and "max" strings are properly parsed
@@ -2677,14 +2912,14 @@ function NaView({
      * @exports NaView
      * @name createFillScale 
      */
-    function createFillScale(fillproperty, fillrange, filldomain) {
+    createFillScale(fillproperty, fillrange, filldomain) {
         let prop_values = [];
         let scale_min = filldomain[0];
         if ((scale_min+"").includes("min")) {
-            let min_res = d3.min(Object.keys(current_resid_properties));
-            let max_res = d3.min(Object.keys(current_resid_properties));
+            let min_res = d3.min(Object.keys(this.current_resid_properties));
+            let max_res = d3.min(Object.keys(this.current_resid_properties));
             for (let i_res = min_res; i_res < max_res+1; i_res++) {
-                let prop_value = current_resid_properties[i_res][fillproperty];
+                let prop_value = this.current_resid_properties[i_res][fillproperty];
                 prop_values.push(prop_value);
             }
             scale_min = d3.min(prop_values);
@@ -2693,10 +2928,10 @@ function NaView({
         let scale_max = filldomain[filldomain.length-1];
         if ((scale_max+"").includes("max")) {
             if (prop_values.length === 0) {
-                let min_res = d3.min(Object.keys(current_resid_properties));
-                let max_res = d3.min(Object.keys(current_resid_properties));
+                let min_res = d3.min(Object.keys(this.current_resid_properties));
+                let max_res = d3.min(Object.keys(this.current_resid_properties));
                 for (let i_res = min_res; i_res < max_res+1; i_res++) {
-                    let prop_value = current_resid_properties[i_res][fillproperty];
+                    let prop_value = this.current_resid_properties[i_res][fillproperty];
                     prop_values.push(prop_value);
                 }
             }
@@ -2704,12 +2939,12 @@ function NaView({
         }
         filldomain[filldomain.length-1] = scale_max;
         return d3.scaleLinear()
-        .domain(deepCopy(filldomain))
-        .range(deepCopy(fillrange));
+        .domain(this.deepCopy(filldomain))
+        .range(this.deepCopy(fillrange));
     }
     
     /**
-     * Parses fillRules global object checking if object meets any rule criteria.<br>
+     * Parses this.fillRules global object checking if object meets any rule criteria.<br>
      * If so, the appropriate color/color scale is then returned.
      * @param {String} data_obj Helix/pore/loop element current datum
      * @yields false or a rgb/hex/named color. opacity check currently deprecated
@@ -2717,18 +2952,18 @@ function NaView({
      * @exports NaView
      * @name checkFillResidue 
      */
-    function checkFillResidue(data_obj) {
+    checkFillResidue(data_obj,that) {
         let this_residue_color = false;
         let get_value = false;
-        for (let each_rule_index = 0; each_rule_index < fillRules.length; each_rule_index++) {
-            let current_rule = fillRules[each_rule_index];
+        for (let each_rule_index = 0; each_rule_index < that.fillRules.length; each_rule_index++) {
+            let current_rule = that.fillRules[each_rule_index];
             let fillproperty = current_rule.get;
             let fillrange = current_rule.range;
             let filldomain = current_rule.domain;
             let colorFunction;
             if (current_rule.get) {
-                colorFunction = createFillScale(fillproperty, fillrange, filldomain);
-                get_value = current_resid_properties[data_obj.res_ind][fillproperty];
+                colorFunction = that.createFillScale(fillproperty, fillrange, filldomain);
+                get_value = that.current_resid_properties[data_obj.res_ind][fillproperty];
             } else {
                 colorFunction = function(etc) {
                     return current_rule.color;
@@ -2760,7 +2995,12 @@ function NaView({
      * @exports NaView
      * @name draw_helices_resids_box 
      */
-    function draw_helices_resids_box(enter_element) {
+    draw_helices_resids_box(enter_element, that) {
+        // let that = this;
+        let rangeArray = function(length,start){
+            return that.rangeArray(length,start);
+        };
+        let checkFillResidue = that.checkFillResidue;
         let g_helix_resids = enter_element.append("g")
         .attr("id", function(d){
             return "g_helix_resids_" + d.dom_name + "_" + d.dom_itype
@@ -2783,7 +3023,7 @@ function NaView({
             let d_data = [];
             for (let iaaa = 0; iaaa < aa_array.length; iaaa++) {
                 let aa1 = aa_array[iaaa];
-                let aa3 = one_to_three[aa_array[iaaa]];
+                let aa3 = that.one_to_three[aa_array[iaaa]];
                 let aai = aa_indarray[iaaa];
                 let start_x1 = pd.draw_area.start_x;
                 let start_y1 = pd.draw_area.start_y + (height_per_aa*iaaa);
@@ -2793,6 +3033,7 @@ function NaView({
                     "id":pd.id,
                     "type":pd.type,
                     "dom_name":pd.dom_name,
+                    "dom_iname":pd.dom_iname,
                     "dom_itype":pd.dom_itype,
                     "start_x": start_x1,
                     "start_y": start_y1,
@@ -2823,21 +3064,21 @@ function NaView({
                 .attr("width", function(d) { return d["width"];} )
                 .attr("height", function(d) { return d["height"];} )
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d, that)[1];
                     if (o_color) {
                         return o_color;;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -2850,21 +3091,21 @@ function NaView({
                 return update
                 .transition()
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -2885,8 +3126,11 @@ function NaView({
      * @exports NaView
      * @name draw_helices_box 
      */
-    function draw_helices_box(data, dataId) {
-        let svg_element = d3.select("#"+svg_id)
+    draw_helices_box(data, dataId) {
+        let that = this;
+        let draw_helices_resids_box = this.draw_helices_resids_box;
+
+        let svg_element = d3.select("#"+this.svg_id)
             .append("g")
             .attr("class", "helices_group");
         
@@ -2910,7 +3154,7 @@ function NaView({
                         .attr("stroke-width", function(d) { return d.stroke_size;})
                         ;
     
-                    draw_helices_resids_box(e);
+                    draw_helices_resids_box(e, that);
     
                     return e;
                 },
@@ -2930,7 +3174,15 @@ function NaView({
      * @exports NaView
      * @name draw_helices_resids_cylinder 
      */
-    function draw_helices_resids_cylinder(enter_element) {
+    draw_helices_resids_cylinder(enter_element, that) {
+        // let that = this;
+        let rangeArray = function(length,start){
+            return that.rangeArray(length,start);
+        };
+        // let checkFillResidue = this.checkFillResidue;
+        let checkFillResidue = function(data,t){
+            return that.checkFillResidue(data,t);
+        };
         let g_helix_resids = enter_element.append("g")
         .attr("id", function(d){ return "g_helix_resids_" + d.dom_name + "_" + d.dom_itype})
         .attr("class", "g_helix_resids residue_path")
@@ -2953,7 +3205,7 @@ function NaView({
             let d_data = [];
             for (let iaaa = 0; iaaa < aa_array.length; iaaa++) {
                 let aa1 = aa_array[iaaa];
-                let aa3 = one_to_three[aa_array[iaaa]];
+                let aa3 = that.one_to_three[aa_array[iaaa]];
                 let aai = aa_indarray[iaaa];
                 let start_x1 = d.draw_area.start_x;
                 let start_y1 = d.draw_area.start_y + (height_per_aa*iaaa);
@@ -2963,6 +3215,7 @@ function NaView({
                     "id":d.id,
                     "type":d.type,
                     "dom_name":d.dom_name,
+                    "dom_iname":d.dom_iname,
                     "dom_itype":d.dom_itype,
                     "start_x": start_x1,
                     "start_y": start_y1,
@@ -2994,21 +3247,21 @@ function NaView({
                 .attr("height", function(d) { return d["height"];} )
                 .attr("stroke-width", function(d) { return d.stroke_size;})
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -3020,37 +3273,27 @@ function NaView({
                         return (d["width"]+d["height"]) + "," + d["width"];
                     }
                     return;
-                })
-                .on("mouseover", function(d) {
-                    console.log("");
-                    console.log("#######");
-                    console.log("MOUSE OVER PATH");
-                    console.log("data:");
-                    console.log(d);
-                    console.log("#######");
-                    console.log("");
-                })
-                ;
+                });
             },
             function(update) {
                 return update
                 .transition()
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -3070,20 +3313,23 @@ function NaView({
      * @exports NaView
      * @name draw_helices_cylinder 
      */
-    function draw_helices_cylinder(data, dataId) {
-        let ratio_wh = svg_height/svg_width;
+    draw_helices_cylinder(data, dataId) {
+        let checkFillResidue = this.checkFillResidue;
+        let that = this;
+        let draw_helices_resids_cylinder = this.draw_helices_resids_cylinder;
+        let ratio_wh = this.svg_height/this.svg_width;
         let cylinder_radius_x = data[0].draw_area.width/2;
         let cylinder_radius_y = cylinder_radius_x * ratio_wh;
-        let top_cylinder_stroke = style_obj.protein.helix_draw_opts.draw.top_cylinder_stroke; 
-        let top_cylinder_stroke_size = style_obj.protein.helix_draw_opts.draw.top_cylinder_stroke_size; 
-        // let top_cylinder_fill = style_obj.protein.helix_draw_opts.draw.top_cylinder_fill;
-        let bottom_cylinder_stroke =  style_obj.protein.helix_draw_opts.draw.bottom_cylinder_stroke; 
-        let bottom_cylinder_stroke_size = style_obj.protein.helix_draw_opts.draw.bottom_cylinder_stroke_size; 
-        // let bottom_cylinder_fill = style_obj.protein.helix_draw_opts.draw.bottom_cylinder_fill;
+        let top_cylinder_stroke = this.style_obj.protein.helix_draw_opts.top_cylinder_stroke; 
+        let top_cylinder_stroke_size = this.style_obj.protein.helix_draw_opts.top_cylinder_stroke_size; 
+        // let top_cylinder_fill = this.style_obj.protein.helix_draw_opts.draw.top_cylinder_fill;
+        let bottom_cylinder_stroke =  this.style_obj.protein.helix_draw_opts.bottom_cylinder_stroke; 
+        let bottom_cylinder_stroke_size = this.style_obj.protein.helix_draw_opts.bottom_cylinder_stroke_size; 
+        // let bottom_cylinder_fill = this.style_obj.protein.helix_draw_opts.draw.bottom_cylinder_fill;
     
         // let lipid_head_radius_height = lipid_head_radius_width * ratio_wh * 2;
     
-        let svg_element = d3.select("#"+svg_id)
+        let svg_element = d3.select("#"+this.svg_id)
             .append("g")
             .attr("class", "helices_group");
         
@@ -3102,14 +3348,14 @@ function NaView({
                         .attr("rx", cylinder_radius_x )
                         .attr("ry", cylinder_radius_y )
                         .attr("fill", function(d) {
-                            let f_color = checkFillResidue(d.resids[d.resids.length-1])[0];
+                            let f_color = checkFillResidue(d.resids[d.resids.length-1], that)[0];
                             if (f_color) {
                                 return f_color;
                             }
                             return d["fill"];
                         } )
                         .attr("opacity", function(d) {
-                            let o_color = checkFillResidue(d.resids[d.resids.length-1])[1];
+                            let o_color = checkFillResidue(d.resids[d.resids.length-1], that)[1];
                             if (o_color) {
                                 return o_color;;
                             }
@@ -3134,7 +3380,7 @@ function NaView({
                         .attr("stroke-width", function(d) { return d.stroke_size;})
                         .attr("stroke-dasharray", function(d) { return d["draw_area"]["width"]+d["draw_area"]["height"]+","+d["draw_area"]["width"];})
                         ;
-                    draw_helices_resids_cylinder(e);
+                    draw_helices_resids_cylinder(e, that);
                     e.append("ellipse")
                         .attr("class", "helices_cyl_top_circle")
                         .attr("cx", function(d) { return d["draw_area"]["start_x"]+cylinder_radius_x;} )
@@ -3142,14 +3388,14 @@ function NaView({
                         .attr("rx", cylinder_radius_x)
                         .attr("ry", cylinder_radius_y )
                         .attr("fill", function(d) {
-                            let f_color = checkFillResidue(d.resids[0])[0];
+                            let f_color = checkFillResidue(d.resids[0], that)[0];
                             if (f_color) {
                                 return f_color;
                             }
                             return d["fill"];
                         } )
                         .attr("opacity", function(d) {
-                            let o_color = checkFillResidue(d.resids[0])[1];
+                            let o_color = checkFillResidue(d.resids[0], that)[1];
                             if (o_color) {
                                 return o_color;;
                             }
@@ -3168,14 +3414,14 @@ function NaView({
                     let bc = update.select(".helices_cyl_bottom_circle")
                     .transition()
                     .attr("fill", function(d) {
-                        let f_color = checkFillResidue(d.resids[d.resids.length-1])[0];
+                        let f_color = checkFillResidue(d.resids[d.resids.length-1], that)[0];
                         if (f_color) {
                             return f_color;
                         }
                         return d["fill"];
                     } )
                     .attr("opacity", function(d) {
-                        let o_color = checkFillResidue(d.resids[d.resids.length-1])[1];
+                        let o_color = checkFillResidue(d.resids[d.resids.length-1], that)[1];
                         if (o_color) {
                             return o_color;;
                         }
@@ -3185,14 +3431,14 @@ function NaView({
                     let tc = update.select(".helices_cyl_top_circle")
                     .transition()
                     .attr("fill", function(d) {
-                        let f_color = checkFillResidue(d.resids[0])[0];
+                        let f_color = checkFillResidue(d.resids[0], that)[0];
                         if (f_color) {
                             return f_color;
                         }
                         return d["fill"];
                     } )
                     .attr("opacity", function(d) {
-                        let o_color = checkFillResidue(d.resids[0])[1];
+                        let o_color = checkFillResidue(d.resids[0], that)[1];
                         if (o_color) {
                             return o_color;;
                         }
@@ -3217,7 +3463,7 @@ function NaView({
      * @name buildPathStringFromData 
      * @yields {String} Path "d" attribute
      */
-    function buildPathStringFromData(d) {
+    buildPathStringFromData(d) {
         let cmdarray = ["M"];
         for (let i_todraw = 0; i_todraw < d.points.length; i_todraw++) {
             let points_element = d.points[i_todraw];
@@ -3259,7 +3505,7 @@ function NaView({
      * @name pathStringToStringPoints 
      * @yields {Array} Coordinate Array of points for given path
      */
-    function pathStringToStringPoints(d3path, searchchar) {
+    pathStringToStringPoints(d3path, searchchar) {
         // var re = new RegExp("a|b");
         let path_string = d3path.attr("d");
         let arrayOfStrings = path_string.split(/(?=[MCL])/g);
@@ -3287,7 +3533,7 @@ function NaView({
      * @name dotToCoords 
      * @yields {Array} Coordinate Array of given point
      */
-    function dotToCoords(dot1) {
+    dotToCoords(dot1) {
         let ndot = [];
         if (dot1.x) {
             ndot.push(dot1.x);
@@ -3311,7 +3557,7 @@ function NaView({
      * @name calculateDotArrayMiddlePoint 
      * @yields {Array} Coordinate Array of Mid Points
      */
-    function calculateDotArrayMiddlePoint(dot1, dot2) {
+    calculateDotArrayMiddlePoint(dot1, dot2) {
         return [(dot1[0] + dot2[0])/2,(dot1[1] + dot2[1])/2];
     }
     
@@ -3324,7 +3570,7 @@ function NaView({
      * @name calculateDotMiddlePoint 
      * @yields {Array} Coordinate Array of Mid Points
      */
-    function calculateDotMiddlePoint(dot1, dot2) {
+    calculateDotMiddlePoint(dot1, dot2) {
         return [(dot1.x + dot2.x)/2,(dot1.y + dot2.y)/2];
     }
     
@@ -3338,7 +3584,7 @@ function NaView({
      * @exports NaView
      * @name generateXMidPts 
      */
-    function generateXMidPts(dot1, dot2, xmids) {
+    generateXMidPts(dot1, dot2, xmids) {
         let dots = [];
         dots.push([dot1.x, dot1.y]);
         let deltaX = (dot2.x - dot1.x)/xmids;
@@ -3362,7 +3608,7 @@ function NaView({
      * @exports NaView
      * @name pathSegmentToXYPoints 
      */
-    function pathSegmentToXYPoints(dompath, segmentstart, segmentend, sampling_step, sampling_stepend) {
+    pathSegmentToXYPoints(dompath, segmentstart, segmentend, sampling_step, sampling_stepend) {
         if (!sampling_step) {
             sampling_step = 0.25;
         }
@@ -3382,7 +3628,7 @@ function NaView({
     /**
      * Generates drawing information for bezier curves that define each half turn object.<br>
      * This is done according to a helix number of turns (division by three).<br>
-     * And also to style_obj helix width and height definitions, as well as to the number of residues in each half turn.<br>
+     * And also to this.style_obj helix width and height definitions, as well as to the number of residues in each half turn.<br>
      * @namespace
      * @exports NaView
      * @name gen_helix_cartoon_halfturn_data 
@@ -3392,7 +3638,7 @@ function NaView({
      * 2. Total turn number for a helix<br>
      * 3. Parity of half helix front turn number (deprecated) <br>
      */
-    function gen_helix_cartoon_halfturn_data(data) {
+    gen_helix_cartoon_halfturn_data(data) {
         let aanum = data.aanum;
         let helix_drawarea = data.draw_area;
         let helix_hstart = helix_drawarea.start_y;
@@ -3402,7 +3648,7 @@ function NaView({
         let resid_inversion = data.inverted;
     
         let aa_array = data.aas.split('');
-        let aa_indarray = rangeArray(data.aas.length, data.start);
+        let aa_indarray = this.rangeArray(data.aas.length, data.start);
         if (resid_inversion) {
             aa_array.reverse();
             aa_indarray.reverse();
@@ -3433,8 +3679,8 @@ function NaView({
             }
         }
         
-        let half_turn_resids = stringToChunksSkip(data.aas, 3, 1);
-        let half_turn_resids2 = stringToChunksSkip(data.aas.slice(2), 3, 1);
+        let half_turn_resids = this.stringToChunksSkip(data.aas, 3, 1);
+        let half_turn_resids2 = this.stringToChunksSkip(data.aas.slice(2), 3, 1);
         // half_turns_number = half_turn_resids.length;
     
         let back_half_turn_resids = half_turn_resids.filter(function(a, i) {
@@ -3458,7 +3704,7 @@ function NaView({
         // var height_step_per_full_turn = helixheight / number_of_turns_integer;
         var height_step_per_half_turn = height_step_per_full_turn / 2;
     
-        let helix_draw_thickness = style_obj["protein"]["helix_draw_opts"]["draw"]["thickness"];
+        let helix_draw_thickness = this.style_obj["protein"]["helix_draw_opts"]["thickness"];
         var thickness_step_per_half_turn = height_step_per_half_turn * helix_draw_thickness;
     
         var width_step_per_half_turn = helixwidth;
@@ -3467,9 +3713,9 @@ function NaView({
         let w = width_step_per_half_turn;
         let h = height_step_per_half_turn;
     
-        let helix_draw_x_to_end_proportion = style_obj["protein"]["helix_draw_opts"]["draw"]["x_to_end_prop"];
+        let helix_draw_x_to_end_proportion = this.style_obj["protein"]["helix_draw_opts"]["x_to_end_prop"];
         //let helix_draw_thickness = helix_draw_thickness;
-        let helix_draw_y_to_mid_proportion = style_obj["protein"]["helix_draw_opts"]["draw"]["y_to_mid_prop"];
+        let helix_draw_y_to_mid_proportion = this.style_obj["protein"]["helix_draw_opts"]["y_to_mid_prop"];
     
         let tx = (w * helix_draw_x_to_end_proportion);
         let ty = (h * helix_draw_thickness); // helix half turn height
@@ -3478,9 +3724,9 @@ function NaView({
         let back_helix_color = data.back_fill;
         let front_helix_color = data.fill;
     
-        let helix_stroke_size = style_obj["protein"]["helix_draw_opts"]["draw"]["stroke_size"];
-        let back_helix_stroke = style_obj["protein"]["helix_draw_opts"]["draw"]["back_helix_stroke"];
-        let front_helix_stroke = style_obj["protein"]["helix_draw_opts"]["draw"]["front_helix_stroke"];
+        let helix_stroke_size = this.style_obj["protein"]["helix_draw_opts"]["hh_stroke_size"];
+        let back_helix_stroke = this.style_obj["protein"]["helix_draw_opts"]["back_helix_stroke"];
+        let front_helix_stroke = this.style_obj["protein"]["helix_draw_opts"]["front_helix_stroke"];
     
         let parsed_resnum = 0;
     
@@ -3512,9 +3758,10 @@ function NaView({
                         "id":data.id,
                         "type":data.type,
                         "dom_name":data.dom_name,
+                        "dom_iname":data.dom_iname,
                         "dom_itype":data.dom_itype,
                         "res_1":aa_array[bck_respos_index],
-                        "res_3":one_to_three[aa_array[bck_respos_index]],
+                        "res_3":this.one_to_three[aa_array[bck_respos_index]],
                         // "res_ind": data.start+(bck_respos_index),
                         "res_ind": aa_indarray[bck_respos_index],
                         "opacity": data.opacity,
@@ -3563,6 +3810,7 @@ function NaView({
                     "id":data.id,
                     "type":data.type,
                     "dom_name":data.dom_name,
+                    "dom_iname":data.dom_iname,
                     "dom_itype":data.dom_itype,
                     "resids": bckresids,
                     "pathclose": true,
@@ -3593,9 +3841,10 @@ function NaView({
                         "id":data.id,
                         "type":data.type,
                         "dom_name":data.dom_name,
+                        "dom_iname":data.dom_iname,
                         "dom_itype":data.dom_itype,
                         "res_1":aa_array[frt_respos_index],
-                        "res_3":one_to_three[aa_array[frt_respos_index]],
+                        "res_3":this.one_to_three[aa_array[frt_respos_index]],
                         // "res_ind": data.start+(frt_respos_index),
                         "res_ind": aa_indarray[frt_respos_index],
                         "opacity": data.opacity,
@@ -3642,6 +3891,7 @@ function NaView({
                     "id":data.id,
                     "type":data.type,
                     "dom_name":data.dom_name,
+                    "dom_iname":data.dom_iname,
                     "dom_itype":data.dom_itype,
                     "resids": frtresids,
                     "pathclose": true,
@@ -3682,7 +3932,7 @@ function NaView({
      * 2.top "left" and "right" coordinates of half turn parent path element<br>
      * 3.proportion of each residue in parent path half helix polygon
      */
-    function getHalfHelixBoundaries(dom_created_path, dom_created_path_length, height_sline, division) {
+    getHalfHelixBoundaries(dom_created_path, dom_created_path_length, height_sline, division) {
         //and subtract 2 times line height and divide by 2
         let curve_length = (dom_created_path_length - (2*height_sline)) / 2;
         
@@ -3705,13 +3955,13 @@ function NaView({
             curve_step_size_f -= curve_step_size_2;
         }
     
-        let displacement_ps = curve_step*style_obj["protein"]["helix_draw_opts"]["draw"]["aa_area_perc_displacement"];
+        let displacement_ps = curve_step*this.style_obj["protein"]["helix_draw_opts"]["aa_area_perc_displacement"];
         
-        let displacement_ps1 = curve_step_size_1*style_obj["protein"]["helix_draw_opts"]["draw"]["aa_area_perc_displacement"];
-        let displacement_psf = curve_step_size_f*style_obj["protein"]["helix_draw_opts"]["draw"]["aa_area_perc_displacement"];
+        let displacement_ps1 = curve_step_size_1*this.style_obj["protein"]["helix_draw_opts"]["aa_area_perc_displacement"];
+        let displacement_psf = curve_step_size_f*this.style_obj["protein"]["helix_draw_opts"]["aa_area_perc_displacement"];
         let displacement_ps2 = false;
         if (division.curve_steps.length === 2) {
-            displacement_ps2 = curve_step_size_2*style_obj["protein"]["helix_draw_opts"]["draw"]["aa_area_perc_displacement"];
+            displacement_ps2 = curve_step_size_2*this.style_obj["protein"]["helix_draw_opts"]["aa_area_perc_displacement"];
         }
     
         //the use getpointatlength for getting the desired points at each third of path
@@ -3752,14 +4002,14 @@ function NaView({
         };
     
         let bottom_curve_points = {
-            "left": deepCopy(default_curve_point),
+            "left": this.deepCopy(default_curve_point),
         };
         let top_curve_points = {
-            "left": deepCopy(default_curve_point),
+            "left": this.deepCopy(default_curve_point),
         };
         if (division.curve_steps.length === 2) {
-            bottom_curve_points["right"] = deepCopy(default_curve_point);
-            top_curve_points["right"] = deepCopy(default_curve_point);
+            bottom_curve_points["right"] = this.deepCopy(default_curve_point);
+            top_curve_points["right"] = this.deepCopy(default_curve_point);
         }
         
         bottom_curve_points["left"]["x"] = fp_btm_curve.x;
@@ -3801,7 +4051,9 @@ function NaView({
      * @param {number} data_index index of half turn parent element
      * @param {HTMLElement} dom_created_path half turn parent path element as DOM Object
      */
-    function drawSingleHalfHelixResidue(data, path_class, data_index, dom_created_path) {
+    drawSingleHalfHelixResidue(data, path_class, data_index, dom_created_path) {
+        let checkFillResidue = this.checkFillResidue;
+        let that = this;
         let d3_created_path_parent = d3.select(dom_created_path);
         let g_res_polygons = d3.select("#"+path_class+"_resids").append("g");
         
@@ -3824,7 +4076,7 @@ function NaView({
                     return d.path_d;
                 })
                 .attr('stroke', function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -3833,14 +4085,14 @@ function NaView({
                     // return "black";
                 })
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d, that)[1];
                     if (o_color) {
                         return o_color;;
                     }
@@ -3849,35 +4101,35 @@ function NaView({
                 .attr('stroke-width', function(d) {
                     return d.stroke_size;
                 })
-                .on("mouseover", function(d) {
-                    console.log("");
-                    console.log("#######");
-                    console.log("MOUSE OVER PATH");
-                    console.log("data:");
-                    console.log(d);
-                    console.log("#######");
-                    console.log("");
-                })
+                // .on("mouseover", function(d) {
+                //     console.log("");
+                //     console.log("#######");
+                //     console.log("MOUSE OVER PATH");
+                //     console.log("data:");
+                //     console.log(d);
+                //     console.log("#######");
+                //     console.log("");
+                // })
                 ;
             },
             function(update) {
                 return update.transition()
                 .attr('stroke', function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 })
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d, that)[1];
                     if (o_color) {
                         return o_color;;
                     }
@@ -3921,8 +4173,8 @@ function NaView({
      * @param {number} curve_length pixel length of each half turn symetrical top and bottom bezier curves
      * @param {Array} division_curve_lengths proportion of each residue in parent path half helix polygon
      */
-    function drawHalfHelixResidPolygons(data, path_class, data_index, dom_created_path, dom_created_path_length, bottom_curve_points, top_curve_points, height_sline, curve_length, division_curve_lengths) {
-        // var svg = d3.select("#"+svg_id);
+    drawHalfHelixResidPolygons(data, path_class, data_index, dom_created_path, dom_created_path_length, bottom_curve_points, top_curve_points, height_sline, curve_length, division_curve_lengths) {
+        // var svg = d3.select("#"+this.svg_id);
         // let gresareas = svg.append("g").attr("class", "helix_aa_areas");
         // console.log("data2");
         // console.log(data);
@@ -3931,27 +4183,27 @@ function NaView({
         
         var cardinalDrawing = d3.line().curve(d3.curveCardinal); //https://github.com/d3/d3-shape#curveCardinalClosed
     
-        let left_mid_pt = calculateDotMiddlePoint(bottom_curve_points["left"], top_curve_points["left"]);
+        let left_mid_pt = this.calculateDotMiddlePoint(bottom_curve_points["left"], top_curve_points["left"]);
     
         division_curve_lengths
         let right_mid_pt = false;
         if (division_curve_lengths[1]) {
-            right_mid_pt = calculateDotMiddlePoint(bottom_curve_points["right"], top_curve_points["right"]);
+            right_mid_pt = this.calculateDotMiddlePoint(bottom_curve_points["right"], top_curve_points["right"]);
         }
     
         let smleft_bottom_to_top = [
-            dotToCoords(bottom_curve_points["left"]),
-            dotToCoords(top_curve_points["left"]),
+            this.dotToCoords(bottom_curve_points["left"]),
+            this.dotToCoords(top_curve_points["left"]),
         ];
     
-        let left_bottom_to_top = generateXMidPts(bottom_curve_points["left"], top_curve_points["left"], 10);
-        let left_top_to_bottom = generateXMidPts(top_curve_points["left"], bottom_curve_points["left"], 10);
+        let left_bottom_to_top = this.generateXMidPts(bottom_curve_points["left"], top_curve_points["left"], 10);
+        let left_top_to_bottom = this.generateXMidPts(top_curve_points["left"], bottom_curve_points["left"], 10);
     
         let right_bottom_to_top = false;
         let right_top_to_bottom = false;
         if (division_curve_lengths[1]) {
-            right_bottom_to_top = generateXMidPts(bottom_curve_points["right"], top_curve_points["right"], 10);
-            right_top_to_bottom = generateXMidPts(top_curve_points["right"], bottom_curve_points["right"], 10);
+            right_bottom_to_top = this.generateXMidPts(bottom_curve_points["right"], top_curve_points["right"], 10);
+            right_top_to_bottom = this.generateXMidPts(top_curve_points["right"], bottom_curve_points["right"], 10);
         }
     
         let array_of_pathpts = [];
@@ -3965,35 +4217,35 @@ function NaView({
             ];
     
             //first polygon downward segment
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, 0, height_sline, 5));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, 0, height_sline, 5));
             //first polygon horizontal segment 1
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
             // first polygon upward segment
             array_of_pathpts[0].push(...left_bottom_to_top);
             // array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
             //first polygon horizontal segment 2
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, top_curve_points["left"]["path_len_to_pt"], dom_created_path_length,2));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, top_curve_points["left"]["path_len_to_pt"], dom_created_path_length,2));
     
             //second polygon downward segment
             array_of_pathpts[1].push(...left_top_to_bottom);
             //second polygon horizontal segment 1
-            array_of_pathpts[1].push(...pathSegmentToXYPoints(dom_created_path, bottom_curve_points["left"]["path_len_to_pt"], bottom_curve_points["right"]["path_len_to_pt"], 2));
+            array_of_pathpts[1].push(...this.pathSegmentToXYPoints(dom_created_path, bottom_curve_points["left"]["path_len_to_pt"], bottom_curve_points["right"]["path_len_to_pt"], 2));
             // second polygon upward segment
             array_of_pathpts[1].push(...right_bottom_to_top);
             //second polygon horizontal segment 2
-            array_of_pathpts[1].push(...pathSegmentToXYPoints(dom_created_path, top_curve_points["right"]["path_len_to_pt"], top_curve_points["left"]["path_len_to_pt"],2));
+            array_of_pathpts[1].push(...this.pathSegmentToXYPoints(dom_created_path, top_curve_points["right"]["path_len_to_pt"], top_curve_points["left"]["path_len_to_pt"],2));
     
             //third polygon downward segment
             array_of_pathpts[2].push(...right_top_to_bottom);
             //third polygon horizontal segment 1
             // array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, bottom_curve_points["right"]["path_len_to_pt"], (height_sline+curve_length), 5));
-            array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, bottom_curve_points["right"]["path_len_to_pt"], (height_sline+division_curve_lengths[1]), 5));
+            array_of_pathpts[2].push(...this.pathSegmentToXYPoints(dom_created_path, bottom_curve_points["right"]["path_len_to_pt"], (height_sline+division_curve_lengths[1]), 5));
             // third polygon upward segment
             // array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, (height_sline+curve_length), ((height_sline*2)+curve_length), 5));
-            array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, (height_sline+division_curve_lengths[1]), ((height_sline*2)+division_curve_lengths[1]), 5));
+            array_of_pathpts[2].push(...this.pathSegmentToXYPoints(dom_created_path, (height_sline+division_curve_lengths[1]), ((height_sline*2)+division_curve_lengths[1]), 5));
             //third polygon horizontal segment 2
             // array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, ((height_sline*2)+curve_length), top_curve_points["right"]["path_len_to_pt"],2));
-            array_of_pathpts[2].push(...pathSegmentToXYPoints(dom_created_path, ((height_sline*2)+division_curve_lengths[1]), top_curve_points["right"]["path_len_to_pt"],2));
+            array_of_pathpts[2].push(...this.pathSegmentToXYPoints(dom_created_path, ((height_sline*2)+division_curve_lengths[1]), top_curve_points["right"]["path_len_to_pt"],2));
         } else {
             array_of_pathpts = [
                 [], // first polygon (left in bck, right in frt)
@@ -4001,23 +4253,23 @@ function NaView({
             ];
     
             //first polygon downward segment
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, 0, height_sline, 5));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, 0, height_sline, 5));
             //first polygon horizontal segment 1
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
             // first polygon upward segment
             array_of_pathpts[0].push(...left_bottom_to_top);
             // array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, height_sline, bottom_curve_points["left"]["path_len_to_pt"], 5));
             //first polygon horizontal segment 2
-            array_of_pathpts[0].push(...pathSegmentToXYPoints(dom_created_path, top_curve_points["left"]["path_len_to_pt"], dom_created_path_length,2));
+            array_of_pathpts[0].push(...this.pathSegmentToXYPoints(dom_created_path, top_curve_points["left"]["path_len_to_pt"], dom_created_path_length,2));
             
             // second polygon downward segment
             array_of_pathpts[1].push(...left_top_to_bottom);
             // second polygon horizontal segment 1
-            array_of_pathpts[1].push(...pathSegmentToXYPoints(dom_created_path, (height_sline+division_curve_lengths[0]), (height_sline+(curve_length-division_curve_lengths[0])), 2));
+            array_of_pathpts[1].push(...this.pathSegmentToXYPoints(dom_created_path, (height_sline+division_curve_lengths[0]), (height_sline+(curve_length-division_curve_lengths[0])), 2));
             // second polygon upward segment
-            array_of_pathpts[1].push(...pathSegmentToXYPoints(dom_created_path, (height_sline+(curve_length-division_curve_lengths[0])), ((height_sline*2)+curve_length), 2));
+            array_of_pathpts[1].push(...this.pathSegmentToXYPoints(dom_created_path, (height_sline+(curve_length-division_curve_lengths[0])), ((height_sline*2)+curve_length), 2));
             // second polygon horizontal segment 2
-            array_of_pathpts[1].push(...pathSegmentToXYPoints(dom_created_path, ((height_sline*2)+curve_length), ((height_sline*2)+((curve_length-division_curve_lengths[0])+curve_length)), 2));
+            array_of_pathpts[1].push(...this.pathSegmentToXYPoints(dom_created_path, ((height_sline*2)+curve_length), ((height_sline*2)+((curve_length-division_curve_lengths[0])+curve_length)), 2));
         }
     
     
@@ -4026,7 +4278,9 @@ function NaView({
             let polygon_pathpts = array_of_pathpts[iapp];
             data.resids[iapp]["pathpts"] = polygon_pathpts;
         }
-    
+        
+        let that = this;
+        let checkFillResidue = this.checkFillResidue;
         g_res_polygons
         .selectAll("."+path_class+"_resids_"+data_index)
         .data(data.resids)
@@ -4045,7 +4299,7 @@ function NaView({
                     return cardinalDrawing(d.pathpts);
                 })
                 .attr('stroke', function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d, that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -4054,14 +4308,14 @@ function NaView({
                     // return "black";
                 })
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
@@ -4070,36 +4324,36 @@ function NaView({
                 .attr('stroke-width', function(d) {
                     return d.stroke_size;
                 })
-                .on("mouseover", function(d) {
-                    console.log("");
-                    console.log("#######");
-                    console.log("MOUSE OVER PATH");
-                    console.log("data:");
-                    console.log(d);
-                    console.log("#######");
-                    console.log("");
-                })
+                // .on("mouseover", function(d) {
+                //     console.log("");
+                //     console.log("#######");
+                //     console.log("MOUSE OVER PATH");
+                //     console.log("data:");
+                //     console.log(d);
+                //     console.log("#######");
+                //     console.log("");
+                // })
                 ;
             },
             function(update) {
                 return update.transition()
     
                 .attr('stroke', function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 })
                 .attr("fill", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
@@ -4144,7 +4398,7 @@ function NaView({
      * @param {Array} data back half helices or front half helices specific data array
      * @param {String} path_class name to generate group element class of new sub paths
      */
-    function draw_helices_resids_cartoon(data, path_class) {
+    draw_helices_resids_cartoon(data, path_class) {
         // function draw_helices_resids_cartoon(data, path_class, half_turns_number, aanum_parity) {
         let g_helix_resids = d3.select("#g_helix_" + data[0].dom_name + "_" + data[0].dom_itype)
         .append("g")
@@ -4177,7 +4431,7 @@ function NaView({
     
             let parts_division = path_data.parts_division;
     
-            let path_sline_str = pathStringToStringPoints(d3_created_path, "M");
+            let path_sline_str = this.pathStringToStringPoints(d3_created_path, "M");
             let path_sline_split = path_sline_str.split(" ");
             let height_sline = Math.abs(parseFloat(path_sline_split[1].split(",")[1]) - parseFloat(path_sline_split[2].split(",")[1]));
             
@@ -4188,7 +4442,7 @@ function NaView({
             let curve_length = (dom_created_path_length - (2*height_sline)) / 2;
             
             let curve_step =  curve_length / 3;
-            // let displacement_ps = curve_step*style_obj["protein"]["helix_draw_opts"]["draw"]["aa_area_perc_displacement"];
+            // let displacement_ps = curve_step*this.style_obj["protein"]["helix_draw_opts"]["aa_area_perc_displacement"];
             // //the use getpointatlength for getting the desired points at each third of path
             
             let current_division = {
@@ -4201,10 +4455,10 @@ function NaView({
     
             if (parts_division.length > 1) {
                 let results_pts = false;
-                results_pts = getHalfHelixBoundaries(dom_created_path, dom_created_path_length, height_sline, current_division);
-                drawHalfHelixResidPolygons(path_data, path_class,i_path, dom_created_path, dom_created_path_length, results_pts[0], results_pts[1], height_sline, curve_length, [results_pts[2], results_pts[3]]);
+                results_pts = this.getHalfHelixBoundaries(dom_created_path, dom_created_path_length, height_sline, current_division);
+                this.drawHalfHelixResidPolygons(path_data, path_class,i_path, dom_created_path, dom_created_path_length, results_pts[0], results_pts[1], height_sline, curve_length, [results_pts[2], results_pts[3]]);
             } else {
-                drawSingleHalfHelixResidue(path_data, path_class,i_path, dom_created_path)
+                this.drawSingleHalfHelixResidue(path_data, path_class,i_path, dom_created_path)
             }
         }
     }
@@ -4212,7 +4466,7 @@ function NaView({
     /**
      * Plots helices in Cartoon Mode.
      * 1. Generates data for each Helix half turns
-     * 2. Builds bezier curves according to helix properties set in style_obj
+     * 2. Builds bezier curves according to helix properties set in this.style_obj
      * 3. Partition Path Helix Half Turns SVG Object into sub-objects for each residue.
      * @namespace
      * @exports NaView
@@ -4222,16 +4476,16 @@ function NaView({
      * @see draw_helices_resids_cartoon
      * @param {Array} data helix data generated from processRawUniProt
      */
-    function draw_helices_cartoon(data) {
+    draw_helices_cartoon(data) {
     // function draw_helices_cartoon(data, dataId, dataClass) {
-    
-        let svg_element = d3.select("#"+svg_id)
+        let buildPathStringFromData = this.buildPathStringFromData;
+        let svg_element = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", "helices_group");
     
         for (let id = 0; id < data.length; id++) {
             let obj = data[id];
-            let helix_to_draw_data = gen_helix_cartoon_halfturn_data(obj);
+            let helix_to_draw_data = this.gen_helix_cartoon_halfturn_data(obj);
             
             //create helix g and draw it
             let cartoon_helix_g = svg_element.append("g")
@@ -4260,7 +4514,7 @@ function NaView({
                 ;
     
             // draw_helices_resids_cartoon(helix_to_draw_data["back"], bck_path_class,  helix_to_draw_data["half_turns_number"], helix_to_draw_data["aanum_parity"]);
-            draw_helices_resids_cartoon(helix_to_draw_data["back"], bck_path_class);
+            this.draw_helices_resids_cartoon(helix_to_draw_data["back"], bck_path_class);
             
             //draw front helix path
             let frt_path_class = "frt_h_hel_path_" + obj.dom_name + "_" + obj.dom_itype;
@@ -4279,7 +4533,7 @@ function NaView({
                 .attr('fill', function(d){return d.fill;})
                 ;
                 // draw_helices_resids_cartoon(helix_to_draw_data["front"], frt_path_class,  helix_to_draw_data["half_turns_number"], helix_to_draw_data["aanum_parity"]);
-                draw_helices_resids_cartoon(helix_to_draw_data["front"], frt_path_class);
+                this.draw_helices_resids_cartoon(helix_to_draw_data["front"], frt_path_class);
         }
     }
     
@@ -4292,7 +4546,7 @@ function NaView({
      * @param {Array} helices_data already plotted helix data generated from processRawUniProt with draw areas
      * @yields {Array} already plotted helix data now also including anchoring points
      */
-    function get_helices_endpoints(helix_mode, helices_data) {
+    get_helices_endpoints(helix_mode, helices_data) {
         //iterate over helices, get their elements, calculate centroid or box points, push to data
         for (let ihg = 0; ihg < helices_data.length; ihg++) {
             let helix_data = helices_data[ihg];
@@ -4337,7 +4591,7 @@ function NaView({
     }
     
     /**
-     * Plots helices in mode defined by style_obj.
+     * Plots helices in mode defined by this.style_obj.
      * @namespace
      * @exports NaView
      * @name draw_helices 
@@ -4348,20 +4602,20 @@ function NaView({
      * @param {Array} helices_data helix data generated from processRawUniProt with draw area
      * @yields {Array}  helix data generated from processRawUniProt with additional information generated from plot
      */
-    function draw_helices(helices_data) {
+    draw_helices(helices_data) {
         //helix can be box, cylinder or cartoon helix
         //membrane can be box or lipid
-        if (style_obj.protein.helix_mode === "box") {
+        if (this.style_obj.protein.helix_mode === "box") {
             // draw_helices_box(helices_data, "helices", "helices");
-            draw_helices_box(helices_data, "helices");
-        } else if (style_obj.protein.helix_mode === "cylinder") {
+            this.draw_helices_box(helices_data, "helices");
+        } else if (this.style_obj.protein.helix_mode === "cylinder") {
             // draw_helices_cylinder(helices_data, "helices", "helices");
-            draw_helices_cylinder(helices_data, "helices");
-        } else if (style_obj.protein.helix_mode === "cartoon") {
+            this.draw_helices_cylinder(helices_data, "helices");
+        } else if (this.style_obj.protein.helix_mode === "cartoon") {
             // draw_helices_cartoon(helices_data, "helices", "helices");
-            draw_helices_cartoon(helices_data);
+            this.draw_helices_cartoon(helices_data);
         }
-        helices_data = get_helices_endpoints(style_obj.protein.helix_mode, helices_data);
+        helices_data = this.get_helices_endpoints(this.style_obj.protein.helix_mode, helices_data);
         return helices_data;
     }
     
@@ -4374,7 +4628,7 @@ function NaView({
      * @param {Array} p2 array of coordinates 2
      * @yields {Array} array of coordinates from the difference between two vectors
      */
-    function createVector(p1, p2) {
+    createVector(p1, p2) {
         return [p1[0]-p2[0], p1[1] - p2[1]];
     }
 
@@ -4386,7 +4640,7 @@ function NaView({
      * @param {Array} v1 array of coordinates 1
      * @yields {Array} normalized array of coordinates
      */
-    function normalizeVector(v1) {
+    normalizeVector(v1) {
         let dist = Math.sqrt( Math.pow(v1[0], 2) + Math.pow(v1[1], 2));
         return [v1[0]/dist, v1[1]/dist];
     }
@@ -4400,7 +4654,7 @@ function NaView({
      * @param {number} val length to scale vector to
      * @yields {Array} scaled array of coordinates
      */
-    function scaleVector(v1, val) {
+    scaleVector(v1, val) {
         return [v1[0] * val, v1[1] * val];
     }
 
@@ -4414,7 +4668,7 @@ function NaView({
      * @param {Array} centerp array of coordinates to center rotated vector
      * @yields {Array} rotated array of coordinates
      */
-    function rotate90(v1, direction, centerp) {
+    rotate90(v1, direction, centerp) {
         if (!direction) {
             direction = "clockwise";
         }
@@ -4448,7 +4702,7 @@ function NaView({
      * @param {number} angle angle in degrees to rotate a vector to
      * @yields {Array} rotated array of coordinates
      */
-    function rotateByAng(v1, centerp, angle) {
+    rotateByAng(v1, centerp, angle) {
         let x = v1[0];
         let y = v1[1];
         let cx = centerp[0];
@@ -4474,7 +4728,7 @@ function NaView({
      * @param {number} distance desired distance to find a point
      * @yields {Array} coordinates at a given angle and distance
      */
-    function getPointAtAngleDistance(x, y, angle, distance) {
+    getPointAtAngleDistance(x, y, angle, distance) {
         var result = [];
         result.push(Math.round(Math.cos(angle * Math.PI / 180) * distance + x));
         result.push(Math.round(Math.sin(angle * Math.PI / 180) * distance + y));
@@ -4490,7 +4744,7 @@ function NaView({
      * @param {Array} C array of coordinates C
      * @yields {number} coordinates at a given angle and distance
      */
-    function find_angle(A,B,C) {
+    find_angle(A,B,C) {
         var AB = Math.sqrt(Math.pow(B[0]-A[0],2)+ Math.pow(B[1]-A[1],2));    
         var BC = Math.sqrt(Math.pow(B[0]-C[0],2)+ Math.pow(B[1]-C[1],2)); 
         var AC = Math.sqrt(Math.pow(C[0]-A[0],2)+ Math.pow(C[1]-A[1],2));
@@ -4507,9 +4761,9 @@ function NaView({
      * @param {String} path_id_keep id of generated "ghost" path. if set, vector is not automatically removed from SVG
      * @yields {number} calculated length of a vector
      */
-    function getGhostPathLength(pts, path_id_keep) {
+    getGhostPathLength(pts, path_id_keep) {
         let curve = d3.line().curve(d3.curveNatural);
-        let pg = d3.select("#"+svg_id)
+        let pg = d3.select("#"+this.svg_id)
         .append("g")
         .attr("id", function() {
             if (path_id_keep) {
@@ -4531,7 +4785,7 @@ function NaView({
         });
 
         let val = p.node().getTotalLength();
-        val = roundDecimals(val, 2);
+        val = this.roundDecimals(val, 2);
         if (!path_id_keep) {
             pg.remove();
         }
@@ -4546,7 +4800,7 @@ function NaView({
      * @param {Array} p2 array of coordinates 2
      * @yields {number} length of vector between two coordinates
      */
-    function euclideanDistance(p1, p2) {
+    euclideanDistance(p1, p2) {
         return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
     }
 
@@ -4567,7 +4821,7 @@ function NaView({
      * @param {Object} add_wavefold_obj Optional: addition of a folding object. See <i><b></b></i>
      * @yields {Array} list of three points composing curve to be generated by d3.curveNatural left to right: (p1, scaled_centroid, p2)
      */
-    function generateSimpleLoopPoints(p1, p2, step_y, y_direction, x_skew_perc, add_wavefold_obj) {
+    generateSimpleLoopPoints(p1, p2, step_y, y_direction, x_skew_perc, add_wavefold_obj) {
         if (!y_direction) {
             y_direction = 1.0;
         }
@@ -4593,7 +4847,7 @@ function NaView({
         ];
         if (add_wavefold_obj) {
             if (add_wavefold_obj.type === "fold") {
-                resulting_points = foldAddition(resulting_points, add_wavefold_obj);
+                resulting_points = this.foldAddition(resulting_points, add_wavefold_obj);
             }
             // } else if (add_wavefold_obj.type === "wave")  {
             //     resulting_points = waveAddition(resulting_points, add_wavefold_obj);
@@ -4624,7 +4878,7 @@ function NaView({
      * @param {Object} add_wavefold_obj Optional: addition of a folding object. See <i><b></b></i>
      * @yields {Array} list of five points composing curve to be generated by d3.curveNatural left to right: (p1, pswirl1, scaled_centroid, pswirl2, p2)
      */
-    function generateSwirlLoopPoints(p1, p2, swirl_x, step_y, perc_step_y, y_direction, add_wavefold_obj) {
+    generateSwirlLoopPoints(p1, p2, swirl_x, step_y, perc_step_y, y_direction, add_wavefold_obj) {
         if (!y_direction) {
             y_direction = 1.0;
         }
@@ -4680,7 +4934,7 @@ function NaView({
      * @param {Object} add_wavefold_obj Optional: addition of a folding object. See <i><b></b></i>
      * @yields {Array} list of five points composing curve to be generated by d3.curveNatural. left to right: (pbulb1, p1, scaled_centroid, p3, pbulb2)
      */
-    function generateBulbLoopPoints(p1, p2, step_x, step_y, perc_step_y, y_direction, x_skew_perc, add_wavefold_obj) {
+    generateBulbLoopPoints(p1, p2, step_x, step_y, perc_step_y, y_direction, x_skew_perc, add_wavefold_obj) {
         if (!y_direction) {
             y_direction = 1.0;
         }
@@ -4716,7 +4970,7 @@ function NaView({
         ];
         if (add_wavefold_obj) {
             if (add_wavefold_obj.type === "fold") {
-                resulting_points = foldAddition(resulting_points, add_wavefold_obj);
+                resulting_points = this.foldAddition(resulting_points, add_wavefold_obj);
             }
             // } else if (add_wavefold_obj.type === "wave")  {
             //     resulting_points = waveAddition(resulting_points, add_wavefold_obj);
@@ -4752,7 +5006,7 @@ function NaView({
      * @param {Object} add_wavefold_obj Optional: addition of a folding object. See <i><b></b></i>
      * @yields {Array} list of seven points composing curve to be generated by d3.curveNatural. left to right: (pbulb1, p1, pmush1, scaled_centroid, pmush2, p3, pbulb2)
      */
-    function generateMushRoomLoopPoints(p1,p2, step_x, step_y, perc_center_x, perc_step_y1, perc_step_y2, y_direction, x_skew_perc, add_wavefold_obj) {
+    generateMushRoomLoopPoints(p1,p2, step_x, step_y, perc_center_x, perc_step_y1, perc_step_y2, y_direction, x_skew_perc, add_wavefold_obj) {
         if (!y_direction) {
             y_direction = 1.0;
         }
@@ -4795,7 +5049,7 @@ function NaView({
         ];
         if (add_wavefold_obj) {
             if (add_wavefold_obj.type === "fold") {
-                resulting_points = foldAddition(resulting_points, add_wavefold_obj);
+                resulting_points = this.foldAddition(resulting_points, add_wavefold_obj);
             }
             // } else if (add_wavefold_obj.type === "wave")  {
             //     resulting_points = waveAddition(resulting_points, add_wavefold_obj);
@@ -4819,7 +5073,7 @@ function NaView({
      * @param {number} y_direction (1.0 or -1.0), y direction to scale step
      * @yields {Array} list of three points composing curve to be generated by d3.curveNatural left to right: (p1, skewed_centroid, p2)
      */
-    function generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, step_y, y_direction) {
+    generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, step_y, y_direction) {
         if (!y_direction) {
             y_direction = 1.0;
         }
@@ -4860,7 +5114,7 @@ function NaView({
      * @param {number} rotate_loop angle to rotate final path in relation to the its anchored point
      * @yields {Array} list of N points composing curve to be generated by d3.curveNatural left to right: (p1, ... , p2)
      */
-    function generateNWaveCurves(p1, p2, n_of_centers, step_height,perc_centers_height, clockwise, rotate_loop) {
+    generateNWaveCurves(p1, p2, n_of_centers, step_height,perc_centers_height, clockwise, rotate_loop) {
         if (!clockwise) {
             clockwise = true;
         }
@@ -4873,13 +5127,13 @@ function NaView({
         let y2 = p2[1];
         if (rotate_loop) {
             if (y2 > y1) {
-                let vecp1p2 = createVector(p2, p1);
-                let p2rotation = rotateByAng(vecp1p2, [x1, y1], rotate_loop);
+                let vecp1p2 = this.createVector(p2, p1);
+                let p2rotation = this.rotateByAng(vecp1p2, [x1, y1], rotate_loop);
                 x2 = p2rotation[0];
                 y2 = p2rotation[1];
             } else {
-                let vecp1p2_2 = createVector(p1, p2);
-                let p1rotation = rotateByAng(vecp1p2_2, [x2, y2], rotate_loop);
+                let vecp1p2_2 = this.createVector(p1, p2);
+                let p1rotation = this.rotateByAng(vecp1p2_2, [x2, y2], rotate_loop);
 
                 x1 = p1rotation[0];
                 y1 = p1rotation[1];
@@ -4907,10 +5161,10 @@ function NaView({
             }
             clockwise = !clockwise;
 
-            let v_pc = createVector([x_pc+0, y_pc+0], [prev_xpc, prev_ypc]);
-            let v_pc_norm = normalizeVector(v_pc);
-            let v_pc_scale = scaleVector(v_pc_norm, current_step);
-            let v_pc_rot = rotate90(v_pc_scale, rotation_direction, [x_pc, y_pc]);
+            let v_pc = this.createVector([x_pc+0, y_pc+0], [prev_xpc, prev_ypc]);
+            let v_pc_norm = this.normalizeVector(v_pc);
+            let v_pc_scale = this.scaleVector(v_pc_norm, current_step);
+            let v_pc_rot = this.rotate90(v_pc_scale, rotation_direction, [x_pc, y_pc]);
             resulting_points.push(v_pc_rot);
             prev_xpc = x_pc;
             prev_ypc = y_pc;
@@ -4928,13 +5182,13 @@ function NaView({
      * @exports NaView
      * @name foldAddition 
      * @param {Array} resulting_points curve points to draw d3.curveNatural curve
-     * @param {Object} add_fold_obj Object part of style_obj describing shape of this horizontal fold (number of folds, relative heights)
+     * @param {Object} add_fold_obj Object part of this.style_obj describing shape of this horizontal fold (number of folds, relative heights)
      * @yields {Array} list of N points composing curve to be generated by d3.curveNatural left to right: (p1, ... , p2)
      */
-    function foldAddition(resulting_points, add_fold_obj) {
+    foldAddition(resulting_points, add_fold_obj) {
         let new_resulting_points = [];
         let half_index = Math.ceil(resulting_points.length / 2);
-        let ghost_length = getGhostPathLength(resulting_points, "ghostParent");
+        let ghost_length = this.getGhostPathLength(resulting_points, "ghostParent");
         let ghost_path_doc = document.getElementById("ghostParent");
         
         let start_abs = ghost_length * add_fold_obj.start;
@@ -4942,14 +5196,14 @@ function NaView({
         let first_point = ghost_path_doc.getPointAtLength(start_abs);
         let first_point_xy = [first_point.x, first_point.y];
 
-        new_resulting_points = deepCopy(resulting_points).slice(0, half_index);
+        new_resulting_points = this.deepCopy(resulting_points).slice(0, half_index);
         let new_points = [];
-        let anchored_centroid = calculateDotArrayMiddlePoint(resulting_points[0],resulting_points[resulting_points.length-1]);
+        let anchored_centroid = this.calculateDotArrayMiddlePoint(resulting_points[0],resulting_points[resulting_points.length-1]);
         if (add_fold_obj.x_scaling !== 0) {
-            anchored_centroid[0] = anchored_centroid[0]+(euclideanDistance(anchored_centroid, resulting_points[resulting_points.length-1])* add_fold_obj.x_scaling);
+            anchored_centroid[0] = anchored_centroid[0]+(this.euclideanDistance(anchored_centroid, resulting_points[resulting_points.length-1])* add_fold_obj.x_scaling);
         }
 
-        let resulting_points_no_fl = deepCopy(resulting_points);
+        let resulting_points_no_fl = this.deepCopy(resulting_points);
         resulting_points_no_fl = resulting_points_no_fl.slice(1,resulting_points.length-1);
         
         for (let ih = 0; ih < add_fold_obj.heights.length; ih++) {
@@ -4959,24 +5213,24 @@ function NaView({
             if (ih % 2 === 0 ) {
                 for (let iep = resulting_points_no_fl.length-1; iep >= 0; iep--) {
                     let point = resulting_points_no_fl[iep];
-                    let dist_to_centroid = euclideanDistance(point, anchored_centroid);
+                    let dist_to_centroid = this.euclideanDistance(point, anchored_centroid);
                     let scale_value = dist_to_centroid * scale_factor;
-                    let vector_point_to_centroid = createVector(point, anchored_centroid);
-                    let vector_point_to_centroid_norm = normalizeVector(vector_point_to_centroid);
-                    let vector_point_to_centroid_norm_scaled = scaleVector(vector_point_to_centroid_norm, scale_value);
-                    let point_to_centroid_norm_scaled = createVector(point, vector_point_to_centroid_norm_scaled);
+                    let vector_point_to_centroid = this.createVector(point, anchored_centroid);
+                    let vector_point_to_centroid_norm = this.normalizeVector(vector_point_to_centroid);
+                    let vector_point_to_centroid_norm_scaled = this.scaleVector(vector_point_to_centroid_norm, scale_value);
+                    let point_to_centroid_norm_scaled = this.createVector(point, vector_point_to_centroid_norm_scaled);
 
                     to_new_points.push(point_to_centroid_norm_scaled);
                 }
             } else {
                 for (let iep = 0; iep < resulting_points_no_fl.length; iep++) {
                     let point = resulting_points_no_fl[iep];
-                    let dist_to_centroid = euclideanDistance(point, anchored_centroid);
+                    let dist_to_centroid = this.euclideanDistance(point, anchored_centroid);
                     let scale_value = dist_to_centroid * scale_factor;
-                    let vector_point_to_centroid = createVector(point, anchored_centroid);
-                    let vector_point_to_centroid_norm = normalizeVector(vector_point_to_centroid);
-                    let vector_point_to_centroid_norm_scaled = scaleVector(vector_point_to_centroid_norm, scale_value);
-                    let point_to_centroid_norm_scaled = createVector(point, vector_point_to_centroid_norm_scaled);
+                    let vector_point_to_centroid = this.createVector(point, anchored_centroid);
+                    let vector_point_to_centroid_norm = this.normalizeVector(vector_point_to_centroid);
+                    let vector_point_to_centroid_norm_scaled = this.scaleVector(vector_point_to_centroid_norm, scale_value);
+                    let point_to_centroid_norm_scaled = this.createVector(point, vector_point_to_centroid_norm_scaled);
 
                     to_new_points.push(point_to_centroid_norm_scaled);
                 }
@@ -4984,7 +5238,7 @@ function NaView({
             new_points.push(...to_new_points);
         }
         new_resulting_points.push(first_point_xy);
-        new_resulting_points.push(...deepCopy(new_points));
+        new_resulting_points.push(...this.deepCopy(new_points));
         new_resulting_points.push(resulting_points[resulting_points.length-1]);
         
         // plotPoints(new_points);
@@ -5000,10 +5254,10 @@ function NaView({
      * @exports NaView
      * @name makeLoopScaling 
      * @param {Object} scale_var variable containing "domain" and "range" of loop scale
-     * @param {Object} loop_length_calculation variable part of style_obj containing additional information about scale such as exponent and base
+     * @param {Object} loop_length_calculation variable part of this.style_obj containing additional information about scale such as exponent and base
      * @yields d3.js scale function for loop length calculations
      */
-    function makeLoopScaling(scale_var, loop_length_calculation) {
+    makeLoopScaling(scale_var, loop_length_calculation) {
         let loop_scaling;
         if (scale_var.scale === "linear") {
             loop_scaling = d3.scaleLinear()
@@ -5029,10 +5283,10 @@ function NaView({
      * @exports NaView
      * @name checkWaveFold 
      * @param {Array} loop_data loop data generated from processRawUniProt function
-     * @param {Object} add_wave_fold_dict_array object part of style_obj describing loops in which folds should be added
-     * @yield null or Object part of style_obj describing how loop should be folded
+     * @param {Object} add_wave_fold_dict_array object part of this.style_obj describing loops in which folds should be added
+     * @yield null or Object part of this.style_obj describing how loop should be folded
      */
-    function checkWaveFold(loop_data, add_wave_fold_dict_array) {
+    checkWaveFold(loop_data, add_wave_fold_dict_array) {
         let wave_fold_obj;
         let dom_name;
         let dom_itype;
@@ -5059,7 +5313,7 @@ function NaView({
      * @param {Array} points array of coordinate points
      * @yields {Boolean} true if NaN is present or false if NaN is absent
      */
-    function checkForNaN(points) {
+    checkForNaN(points) {
         for (let ip = 0; ip < points.length; ip++) {
             // const element = points[ip];
             if (isNaN(points[ip][0]) || isNaN(points[ip][1])) {
@@ -5075,23 +5329,23 @@ function NaView({
      * @exports NaView
      * @name calculateFixedPointData 
      * @param {Array} short_loop_data array of short or long loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of short or long loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateFixedPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
+    calculateFixedPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
         let curve_height;
         let curve_width;
         if (loop_drawing_shape.type === "simple") {
-            curve_height = svg_height * loop_length_calculation.calc.height;
+            curve_height = this.svg_height * loop_length_calculation.calc.height;
         } else if (loop_drawing_shape.type === "swirl") {
-            curve_height = svg_height * loop_length_calculation.calc.height;
+            curve_height = this.svg_height * loop_length_calculation.calc.height;
         } else if (loop_drawing_shape.type === "bulb") {
-            curve_height = svg_height * loop_length_calculation.calc.height;
-            curve_width = svg_width * loop_length_calculation.calc.width;
+            curve_height = this.svg_height * loop_length_calculation.calc.height;
+            curve_width = this.svg_width * loop_length_calculation.calc.width;
         } else if (loop_drawing_shape.type === "mushroom") {
-            curve_height = svg_height * loop_length_calculation.calc.height;
-            curve_width = svg_width * loop_length_calculation.calc.width;
+            curve_height = this.svg_height * loop_length_calculation.calc.height;
+            curve_width = this.svg_width * loop_length_calculation.calc.width;
         }
         for (let isld = 0; isld < short_loop_data.length; isld++) {
             let p1 = short_loop_data[isld].anchorage.p1;
@@ -5108,37 +5362,37 @@ function NaView({
                 }
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
-                points = generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
+                points = this.generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "swirl") {
                 let swirl_x = loop_drawing_shape.calc.swirl_x;
                 let perc_step_y = loop_drawing_shape.calc.perc_step_y;
-                points = generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
+                points = this.generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
             } else if (loop_drawing_shape.type === "bulb") {
                 let perc_step_y = loop_drawing_shape.calc.perc_step_y;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
+                points = this.generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "mushroom") {
                 let perc_step_y1 = loop_drawing_shape.calc.perc_step_y1;
                 let perc_step_y2 = loop_drawing_shape.calc.perc_step_y2;
                 let perc_center_x = loop_drawing_shape.calc.perc_center_x;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold,x_skew_perc, add_wavefold_obj);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold,x_skew_perc, add_wavefold_obj);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
+                points = this.generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
             }
             short_loop_data[isld].points = points;
         }
@@ -5151,11 +5405,11 @@ function NaView({
      * @exports NaView
      * @name calculateScaledPointData 
      * @param {Array} short_loop_data array of short or long loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of short or long loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateScaledPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
+    calculateScaledPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
         let aa_num_sld_array = short_loop_data.map(function(a, i){
             return [a.aanum, i];
         });
@@ -5185,19 +5439,19 @@ function NaView({
         let curve_maxheight;
         let curve_maxwidth;
         if (loop_drawing_shape.type === "simple") {
-            curve_maxheight = svg_height * loop_length_calculation.calc.height;
+            curve_maxheight = this.svg_height * loop_length_calculation.calc.height;
             scale_vars.y_step.max_step = curve_maxheight / loop_drawing_shape.calc.y_step;
         } else if (loop_drawing_shape.type === "swirl") {
-                curve_maxheight = svg_height * loop_length_calculation.calc.height;
+                curve_maxheight = this.svg_height * loop_length_calculation.calc.height;
                 scale_vars.y_step.max_step = curve_maxheight / loop_drawing_shape.calc.y_step;
         } else if (loop_drawing_shape.type === "bulb") {
-            curve_maxheight = svg_height * loop_length_calculation.calc.height;
-            curve_maxwidth = svg_width * loop_length_calculation.calc.width;
+            curve_maxheight = this.svg_height * loop_length_calculation.calc.height;
+            curve_maxwidth = this.svg_width * loop_length_calculation.calc.width;
             scale_vars.y_step.max_step = curve_maxheight / loop_drawing_shape.calc.y_step;
             scale_vars.x_step.max_step = curve_maxwidth / loop_drawing_shape.calc.x_step;
         } else if (loop_drawing_shape.type === "mushroom") {
-            curve_maxheight = svg_height * loop_length_calculation.calc.height;
-            curve_maxwidth = svg_width * loop_length_calculation.calc.width;
+            curve_maxheight = this.svg_height * loop_length_calculation.calc.height;
+            curve_maxwidth = this.svg_width * loop_length_calculation.calc.width;
             scale_vars.y_step.max_step = curve_maxheight / loop_drawing_shape.calc.y_step;
             scale_vars.x_step.max_step = curve_maxwidth / loop_drawing_shape.calc.x_step;
         }
@@ -5220,7 +5474,7 @@ function NaView({
             }
             let points;
             if (loop_drawing_shape.type === "simple") {
-                let loop_scaling = makeLoopScaling(scale_vars.y_step, loop_length_calculation);
+                let loop_scaling = this.makeLoopScaling(scale_vars.y_step, loop_length_calculation);
                 let step_number = loop_scaling(short_loop_data[isld].aanum);
                 let curve_height = (step_number * loop_drawing_shape.calc.y_step);
                 let x_skew_perc = 0.0;
@@ -5229,22 +5483,22 @@ function NaView({
                 }
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
-                points = generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
+                points = this.generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "swirl") {
-                let loop_scaling = makeLoopScaling(scale_vars.y_step, loop_length_calculation);
+                let loop_scaling = this.makeLoopScaling(scale_vars.y_step, loop_length_calculation);
                 let step_number = loop_scaling(short_loop_data[isld].aanum);
                 let curve_height = (step_number * loop_drawing_shape.calc.y_step);
                 let swirl_x = loop_drawing_shape.calc.swirl_x;
                 let perc_step_y = loop_drawing_shape.calc.perc_step_y;
-                points = generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
+                points = this.generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
             } else if (loop_drawing_shape.type === "bulb") {
-                let loop_scaling_y = makeLoopScaling(scale_vars.y_step, loop_length_calculation);
+                let loop_scaling_y = this.makeLoopScaling(scale_vars.y_step, loop_length_calculation);
                 let step_number_y = loop_scaling_y(short_loop_data[isld].aanum);
                 let curve_height = (step_number_y * loop_drawing_shape.calc.y_step);
 
-                let loop_scaling_x = makeLoopScaling(scale_vars.x_step, loop_length_calculation);
+                let loop_scaling_x = this.makeLoopScaling(scale_vars.x_step, loop_length_calculation);
                 let step_number_x = loop_scaling_x(short_loop_data[isld].aanum);
                 let curve_width = (step_number_x * loop_drawing_shape.calc.x_step);// + short_loop_data[isld].anchorage.dist;
 
@@ -5252,19 +5506,19 @@ function NaView({
 
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
+                points = this.generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "mushroom") {
-                let loop_scaling_y = makeLoopScaling(scale_vars.y_step, loop_length_calculation);
+                let loop_scaling_y = this.makeLoopScaling(scale_vars.y_step, loop_length_calculation);
                 let step_number_y = loop_scaling_y(short_loop_data[isld].aanum);
                 let curve_height = (step_number_y * loop_drawing_shape.calc.y_step);
 
-                let loop_scaling_x = makeLoopScaling(scale_vars.x_step, loop_length_calculation);
+                let loop_scaling_x = this.makeLoopScaling(scale_vars.x_step, loop_length_calculation);
                 let step_number_x = loop_scaling_x(short_loop_data[isld].aanum);
                 let curve_width = (step_number_x * loop_drawing_shape.calc.x_step);// + short_loop_data[isld].anchorage.dist;
 
@@ -5274,13 +5528,13 @@ function NaView({
 
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
+                points = this.generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
             }
             short_loop_data[isld].points = points;
         }
@@ -5296,19 +5550,19 @@ function NaView({
      * @param {Object} p2 end point of curve
      * @param {number} loop_length expected length of curve
      * @param {number} y_direction 1.0 or -1.0 indicating orientation of curve
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
-     * @param {String} loop_drawing_shape_type String describing curve type according to style_obj
-     * @param {Object} extra_variables dictionary containing extra style_obj parameters not included in shape
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
+     * @param {String} loop_drawing_shape_type String describing curve type according to this.style_obj
+     * @param {Object} extra_variables dictionary containing extra this.style_obj parameters not included in shape
      * @param {Object} loop_data original loop data generated by processRawUniProt
      * @yields {Array} array of points describing curve of loop
      */
-    function generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape_type,extra_variables,loop_data) {
+    generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape_type,extra_variables,loop_data) {
         let step_number = 1;
         let current_length = 0;
         let current_points;
         let x_skew_perc;
         if (extra_variables.hasOwnProperty("x_skew_perc")) {
-            x_skew_perc = deepCopy(extra_variables["x_skew_perc"]);
+            x_skew_perc = this.deepCopy(extra_variables["x_skew_perc"]);
         }
         while (loop_length > current_length) {
             if (loop_drawing_shape_type === "simple") {
@@ -5319,27 +5573,27 @@ function NaView({
                 }
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
                 }
-                current_points = generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
+                current_points = this.generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape_type === "swirl") {
                 let curve_height = (step_number * extra_variables.y_step);
                 let swirl_x = extra_variables.swirl_x;
                 let perc_step_y = extra_variables.perc_step_y;
-                current_points = generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
+                current_points = this.generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
             } else if (loop_drawing_shape_type === "simple_skewed") {
                 let curve_height = (step_number * extra_variables.y_step); 
                 let perc_center_x = extra_variables.perc_center_x;
-                current_points = generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
+                current_points = this.generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
             } else if (loop_drawing_shape_type === "bulb") {
                 let curve_height = (step_number * extra_variables.y_step); 
                 let curve_width = (step_number * extra_variables.x_step);
                 let perc_step_y = extra_variables.perc_step_y;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
                 }
-                current_points = generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
+                current_points = this.generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction,x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape_type === "mushroom") {
                 let curve_height = (step_number * extra_variables.y_step); 
                 let curve_width = (step_number * extra_variables.x_step);
@@ -5348,21 +5602,24 @@ function NaView({
                 let perc_step_y2 = extra_variables.perc_step_y2;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(loop_data, loop_drawing_shape.calc.add_wave_fold);
                 }
-                current_points = generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
+                current_points = this.generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction,x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape_type === "n_curves") {
                 let curve_height = (step_number * extra_variables.y_step);
-                let n_centers = loop_drawing_shape.calc.n_centers;
                 let perc_centers_height = loop_drawing_shape.calc.perc_centers_height;
+                let n_centers = perc_centers_height.length;
                 let loop_rotation = loop_drawing_shape.calc.loop_rotation;
-                current_points = generateNWaveCurves(p1, p2, n_centers, curve_height, perc_centers_height, y_direction, loop_rotation);
+                current_points = this.generateNWaveCurves(p1, p2, n_centers, curve_height, perc_centers_height, y_direction, loop_rotation);
             }
-            let hasNaN = checkForNaN(current_points);
+            let hasNaN = this.checkForNaN(current_points);
             if (hasNaN || current_points.length === 0) {
+                if (step_number === 1) { //straight line it is
+                    return [p1, p2];
+                }
                 return;
             }
-            current_length = getGhostPathLength(current_points);
+            current_length = this.getGhostPathLength(current_points);
             step_number += 1;
         }
         // gname += 1;
@@ -5370,16 +5627,16 @@ function NaView({
     }
 
     /**
-     * Generate loop points for short and long loops of length according to the expected length of each aminoacid in style_obj.
+     * Generate loop points for short and long loops of length according to the expected length of each aminoacid in this.style_obj.
      * @namespace
      * @exports NaView
      * @name calculateResLengthPointData 
      * @param {Array} short_loop_data array of short or long loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of short or long loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateResLengthPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
+    calculateResLengthPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
         //if smaller than, refactor length
         let aa_dist_sld_aanum_array = short_loop_data.map(function(a, i){
             return [a.anchorage.dist, i, a.aanum];
@@ -5417,23 +5674,23 @@ function NaView({
                 y_direction = true;
             }
             let loop_length = short_loop_data[isld].aanum * current_reslen;
-            let points = generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape.type,extra_variables,short_loop_data[isld]);
+            let points = this.generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape.type,extra_variables,short_loop_data[isld]);
             short_loop_data[isld].points = points;
         }
         return short_loop_data;
     }
 
     /**
-     * Generate loop points for short and long loops of custom height and width according to style_obj
+     * Generate loop points for short and long loops of custom height and width according to this.style_obj
      * @namespace
      * @exports NaView
      * @name calculateCustomPointData 
      * @param {Array} short_loop_data array of short or long loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of short or long loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateCustomPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
+    calculateCustomPointData(short_loop_data, loop_length_calculation, loop_drawing_shape) {
         for (let isld = 0; isld < short_loop_data.length; isld++) {
             let p1 = short_loop_data[isld].anchorage.p1;
             let p2 = short_loop_data[isld].anchorage.p2;
@@ -5446,12 +5703,12 @@ function NaView({
             if (short_loop_data[isld].hasOwnProperty("dom_name")) {
                 let dom_name = short_loop_data[isld].dom_name;
                 let dom_itype = short_loop_data[isld].dom_itype;
-                curve_width = loop_length_calculation["calc"]["width"][dom_name][dom_itype] *  svg_width;
-                curve_height = loop_length_calculation["calc"]["height"][dom_name][dom_itype] * svg_height;
+                curve_width = loop_length_calculation["calc"]["width"][dom_name][dom_itype] *  this.svg_width;
+                curve_height = loop_length_calculation["calc"]["height"][dom_name][dom_itype] * this.svg_height;
             } else {
                 let dom_iname = short_loop_data[isld].dom_iname;
-                curve_width = loop_length_calculation["calc"]["width"][dom_iname] *  svg_width;
-                curve_height = loop_length_calculation["calc"]["height"][dom_iname] * svg_height;
+                curve_width = loop_length_calculation["calc"]["width"][dom_iname] *  this.svg_width;
+                curve_height = loop_length_calculation["calc"]["height"][dom_iname] * this.svg_height;
             }
             let points;
             if (loop_drawing_shape.type === "simple") {
@@ -5461,37 +5718,37 @@ function NaView({
                 }
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
-                points = generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
+                points = this.generateSimpleLoopPoints(p1, p2, curve_height, y_direction, x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "swirl") {
                 let swirl_x = loop_drawing_shape.calc.swirl_x;
                 let perc_step_y = loop_drawing_shape.calc.perc_step_y;
-                points = generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
+                points = this.generateSwirlLoopPoints(p1, p2, swirl_x, curve_height, perc_step_y, y_direction);
             } else if (loop_drawing_shape.type === "bulb") {
                 let perc_step_y = loop_drawing_shape.calc.perc_step_y;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction, x_skew_perc, add_wavefold_obj);
+                points = this.generateBulbLoopPoints(p1, p2, curve_width, curve_height, perc_step_y, y_direction, x_skew_perc, add_wavefold_obj);
             } else if (loop_drawing_shape.type === "mushroom") {
                 let perc_step_y1 = loop_drawing_shape.calc.perc_step_y1;
                 let perc_step_y2 = loop_drawing_shape.calc.perc_step_y2;
                 let perc_center_x = loop_drawing_shape.calc.perc_center_x;
                 let add_wavefold_obj;
                 if (loop_drawing_shape.calc.hasOwnProperty("add_wave_fold")) {
-                    add_wavefold_obj = checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
+                    add_wavefold_obj = this.checkWaveFold(short_loop_data[isld], loop_drawing_shape.calc.add_wave_fold);
                 }
                 let x_skew_perc = 0.0;
                 if (loop_drawing_shape.calc.hasOwnProperty("x_skew_perc")) {
                     x_skew_perc = loop_drawing_shape.calc.x_skew_perc;
                 }
-                points = generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction, x_skew_perc, add_wavefold_obj);
+                points = this.generateMushRoomLoopPoints(p1,p2, curve_width, curve_height, perc_center_x, perc_step_y1, perc_step_y2, y_direction, x_skew_perc, add_wavefold_obj);
             }
             short_loop_data[isld].points = points;
         }
@@ -5505,7 +5762,7 @@ function NaView({
      * @name gen_centroids_loop_paths_resids 
      * @param {String} given_class class which loop group elements were named
      */
-    function gen_centroids_loop_paths_resids(given_class) {
+    gen_centroids_loop_paths_resids(given_class) {
         let created_paths = document.getElementsByClassName(given_class);
         for (let icp = 0; icp < created_paths.length; icp++) {
             const element = created_paths[icp];
@@ -5532,7 +5789,11 @@ function NaView({
      * @param {D3 Selection} enter_element parent loop element d3.js selection
      * @param {String} class_naming class to name loop group elements
      */
-    function draw_loop_paths_resids(enter_element, class_naming) {
+    draw_loop_paths_resids(enter_element, class_naming, that) {
+        let pathSegmentToXYPoints = that.pathSegmentToXYPoints;
+        // let that = this;
+        let checkFillResidue = that.checkFillResidue;
+        let gen_centroids_loop_paths_resids = that.gen_centroids_loop_paths_resids;
         let curve = d3.line().curve(d3.curveNatural);
         let data = enter_element.datum();
 
@@ -5584,6 +5845,7 @@ function NaView({
                     "id": d.id,
                     "type":d.type,
                     "dom_name":d.dom_name,
+                    "dom_iname":d.dom_iname,
                     "dom_itype":d.dom_itype,
                     "path_piece_pts":path_piece_pts,
                     "fill":data.fill,
@@ -5615,29 +5877,29 @@ function NaView({
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
                     return d.stroke;
                 })
                 // .style("vector-effect", "non-scaling-stroke")
-                .on("mouseover", function(d) {
-                    console.log("");
-                    console.log("#######");
-                    console.log("MOUSE OVER PATH");
-                    console.log("data:");
-                    console.log(d);
-                    console.log("#######");
-                    console.log("");
-                })
+                // .on("mouseover", function(d) {
+                //     console.log("");
+                //     console.log("#######");
+                //     console.log("MOUSE OVER PATH");
+                //     console.log("data:");
+                //     console.log(d);
+                //     console.log("#######");
+                //     console.log("");
+                // })
                 ;
                 gen_centroids_loop_paths_resids(class_naming+"_residues");
                 return e2;
@@ -5653,14 +5915,14 @@ function NaView({
                     return d["fill"];
                 } )
                 .attr("opacity", function(d) {
-                    let o_color = checkFillResidue(d)[1];
+                    let o_color = checkFillResidue(d,that)[1];
                     if (o_color) {
                         return o_color;
                     }
                     return d["opacity"];
                 })
                 .attr("stroke", function(d) {
-                    let f_color = checkFillResidue(d)[0];
+                    let f_color = checkFillResidue(d,that)[0];
                     if (f_color) {
                         return f_color;
                     }
@@ -5678,9 +5940,11 @@ function NaView({
      * @param {Array} short_loop_data  Array of loop data to draw
      * @param {String} class_naming class to name loop group elements
      */
-    function draw_loop_paths(short_loop_data, class_naming) {
+    draw_loop_paths(short_loop_data, class_naming) {
+        let that = this;
+        let draw_loop_paths_resids = this.draw_loop_paths_resids;
         let curve = d3.line().curve(d3.curveNatural);
-        let svg_element = d3.select("#"+svg_id)
+        let svg_element = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", class_naming+"_group");
 
@@ -5720,7 +5984,7 @@ function NaView({
                 })
                 // .style("vector-effect", "non-scaling-stroke")
                 ;
-                draw_loop_paths_resids(e, class_naming);
+                draw_loop_paths_resids(e, class_naming, that);
                 return e;
             },
             function(update) {
@@ -5746,32 +6010,32 @@ function NaView({
      * @name draw_shortLoops 
      * @param {Array} short_loop_data array of short or long loop data generated by processRawUniProt
      */
-    function draw_shortLoops(short_loop_data) {
-        let loop_length_calculation = style_obj.protein.short_loops_draw_opts.calc_len;
-        let loop_drawing_shape = style_obj.protein.short_loops_draw_opts.shape;
+    draw_shortLoops(short_loop_data) {
+        let loop_length_calculation = this.style_obj.protein.short_loops_draw_opts.calc_len;
+        let loop_drawing_shape = this.style_obj.protein.short_loops_draw_opts.shape;
         if (loop_length_calculation.type === "fixed") {
-            short_loop_data = calculateFixedPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
+            short_loop_data = this.calculateFixedPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "scaled") {
-            short_loop_data = calculateScaledPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
+            short_loop_data = this.calculateScaledPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "reslen") {
-            short_loop_data = calculateResLengthPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
+            short_loop_data = this.calculateResLengthPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "custom") {
-            short_loop_data = calculateCustomPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
+            short_loop_data = this.calculateCustomPointData(short_loop_data, loop_length_calculation, loop_drawing_shape);
         }
-        draw_loop_paths(short_loop_data, "short_loops");
+        this.draw_loop_paths(short_loop_data, "short_loops");
     }
 
     /**
-     * Generate loop points for pore loops of fixed or custom (per style_obj) height and width
+     * Generate loop points for pore loops of fixed or custom (per this.style_obj) height and width
      * @namespace
      * @exports NaView
      * @name calculateFixedCustomPointDataPore 
      * @param {Array} pores_data array of pore loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of pore loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateFixedCustomPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
+    calculateFixedCustomPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
         for (let ipd = 0; ipd < pores_data.length; ipd++) {
             let dom_name = pores_data[ipd].dom_name;
             let dom_itype = pores_data[ipd].dom_itype;
@@ -5788,7 +6052,7 @@ function NaView({
             }
             let points;
             let perc_center_x = loop_drawing_shape.calc.perc_center_x;
-            points = generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
+            points = this.generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
             pores_data[ipd].points = points;
         }
         return pores_data;
@@ -5800,11 +6064,11 @@ function NaView({
      * @exports NaView
      * @name calculateScaledPointDataPore 
      * @param {Array} pores_data array of pore loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of pore loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateScaledPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
+    calculateScaledPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
         let aa_num_pore_array = pores_data.map(function(a, i){
             return [a.aanum, i, a.draw_area.height];
         });
@@ -5825,7 +6089,7 @@ function NaView({
         scale_vars["y_step"]["domain"] = [1,max_aanum];
         scale_vars["y_step"]["range"] = [1,  curve_maxheight / loop_drawing_shape.calc.y_step];
 
-        let loop_scaling = makeLoopScaling(scale_vars.y_step, loop_length_calculation);
+        let loop_scaling = this.makeLoopScaling(scale_vars.y_step, loop_length_calculation);
 
         for (let ipd = 0; ipd < pores_data.length; ipd++) {
             let p1 = pores_data[ipd].anchorage.p1;
@@ -5835,23 +6099,23 @@ function NaView({
             let step_number = loop_scaling(pores_data[ipd].aanum);
             let curve_height = (step_number * loop_drawing_shape.calc.y_step);
             let perc_center_x = loop_drawing_shape.calc.perc_center_x;
-            points = generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
+            points = this.generateSkewedSimpleLoopPoints(p1, p2, perc_center_x, curve_height, y_direction);
             pores_data[ipd].points = points;
         }
         return pores_data;
     }
 
     /**
-     * Generate loop points for pore loops of length according to the expected length of each aminoacid in style_obj.
+     * Generate loop points for pore loops of length according to the expected length of each aminoacid in this.style_obj.
      * @namespace
      * @exports NaView
      * @name calculateResLengthPointDataPore 
      * @param {Array} pores_data array of pore loop data generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Array} array of pore loop data generated by processRawUniProt with points describing loop added
      */
-    function calculateResLengthPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
+    calculateResLengthPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape) {
         let aa_dist_sld_aanum_array = pores_data.map(function(a, i){
             return [a.anchorage.dist, i, a.aanum];
         });
@@ -5882,7 +6146,7 @@ function NaView({
             let p2 = pores_data[ipd].anchorage.p2;
             let y_direction = -1;
             let loop_length = pores_data[ipd].aanum * current_reslen;
-            let points = generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape.type,extra_variables,pores_data[ipd]);
+            let points = this.generatePathWithLength(p1,p2,loop_length,y_direction,loop_drawing_shape,loop_drawing_shape.type,extra_variables,pores_data[ipd]);
             pores_data[ipd].points = points;
         }
         return pores_data;
@@ -5895,21 +6159,21 @@ function NaView({
      * @name draw_poreLoops 
      * @param {Array} pores_data array of pore loop data generated by processRawUniProt
      */
-    function draw_poreLoops(pores_data) {
+    draw_poreLoops(pores_data) {
         // pore drawing. pain in the arse. basically can be scaled alongside helix height
         // can have a custom breakpoint residue
         // and can be scaled according to a custom residue length
 
-        let loop_length_calculation = style_obj.protein.pore_loops_draw_opts.calc_len;
-        let loop_drawing_shape = style_obj.protein.pore_loops_draw_opts.shape;
+        let loop_length_calculation = this.style_obj.protein.pore_loops_draw_opts.calc_len;
+        let loop_drawing_shape = this.style_obj.protein.pore_loops_draw_opts.shape;
         if (loop_length_calculation.type === "fixed" || loop_length_calculation.type === "custom") {
-            pores_data = calculateFixedCustomPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape)
+            pores_data = this.calculateFixedCustomPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape)
         } else if (loop_length_calculation.type === "scaled") {
-            pores_data = calculateScaledPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape);
+            pores_data = this.calculateScaledPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "reslen") {
-            pores_data = calculateResLengthPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape);
+            pores_data = this.calculateResLengthPointDataPore(pores_data, loop_length_calculation, loop_drawing_shape);
         }
-        draw_loop_paths(pores_data, "pore_loops");
+        this.draw_loop_paths(pores_data, "pore_loops");
     }
 
     /**
@@ -5919,37 +6183,37 @@ function NaView({
      * @name draw_longLoops 
      * @param {Array} longloop_data  array of long loop data generated by processRawUniProt
      */
-    function draw_longLoops(longloop_data) {
-        let loop_length_calculation = style_obj.protein.long_loops_draw_opts.calc_len;
-        let loop_drawing_shape = style_obj.protein.long_loops_draw_opts.shape;
+    draw_longLoops(longloop_data) {
+        let loop_length_calculation = this.style_obj.protein.long_loops_draw_opts.calc_len;
+        let loop_drawing_shape = this.style_obj.protein.long_loops_draw_opts.shape;
         if (loop_length_calculation.type === "fixed") {
-            longloop_data = calculateFixedPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
+            longloop_data = this.calculateFixedPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "scaled") {
-            longloop_data = calculateScaledPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
+            longloop_data = this.calculateScaledPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "reslen") {
-            longloop_data = calculateResLengthPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
+            longloop_data = this.calculateResLengthPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "custom") {
-            longloop_data = calculateCustomPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
+            longloop_data = this.calculateCustomPointData(longloop_data, loop_length_calculation, loop_drawing_shape);
         }
-        draw_loop_paths(longloop_data, "long_loops");
+        this.draw_loop_paths(longloop_data, "long_loops");
     }
 
     /**
-     * Generate loop points for termini loops of fixed or custom (per style_obj) height and width
+     * Generate loop points for termini loops of fixed or custom (per this.style_obj) height and width
      * @namespace
      * @exports NaView
      * @name calculateFixedPointTermini 
      * @param {Object} termini_data termini loop data Object generated by processRawUniProt
-     * @param {Object} loop_length_calculation Object part of style_obj describing how loop length should be calculated
-     * @param {Object} loop_drawing_shape Object part of style_obj describing which loop shape should be drawn
+     * @param {Object} loop_length_calculation Object part of this.style_obj describing how loop length should be calculated
+     * @param {Object} loop_drawing_shape Object part of this.style_obj describing which loop shape should be drawn
      * @yields {Object} termini loop data Object generated by processRawUniProt with points describing loop added
      */
-    function calculateFixedPointTermini(termini_data, loop_length_calculation, loop_drawing_shape) {
+    calculateFixedPointTermini(termini_data, loop_length_calculation, loop_drawing_shape) {
         let termini_height;
         if (termini_data.terminus_type === "N") {
-            termini_height = svg_drawarea.end_y - svg_drawarea.membrane_end;
+            termini_height = this.svg_drawarea.end_y - this.svg_drawarea.membrane_end;
         } else {
-            termini_height = svg_drawarea.end_y - svg_drawarea.membrane_end;
+            termini_height = this.svg_drawarea.end_y - this.svg_drawarea.membrane_end;
         }
         let curve_height = termini_height * loop_length_calculation.calc.height;
         let p1 = termini_data.anchorage.p1;
@@ -5957,13 +6221,13 @@ function NaView({
         let starting_y_direction = true;
         let points;
         if (loop_drawing_shape.type === "n_curves") {
-            let n_centers = loop_drawing_shape.calc.n_centers;
             let perc_centers_height = loop_drawing_shape.calc.perc_centers_height;
+            let n_centers = perc_centers_height.length;
             let loop_rotation = loop_drawing_shape.calc.loop_rotation;
-            points = generateNWaveCurves(p1, p2, n_centers, curve_height, perc_centers_height, starting_y_direction, loop_rotation);
+            points = this.generateNWaveCurves(p1, p2, n_centers, curve_height, perc_centers_height, starting_y_direction, loop_rotation);
         }
         termini_data.points = points;
-        draw_loop_paths([termini_data], termini_data.terminus_type+"ter_loops");
+        this.draw_loop_paths([termini_data], termini_data.terminus_type+"ter_loops");
         return termini_data;
     }
 
@@ -5974,26 +6238,26 @@ function NaView({
      * @name draw_termini 
      * @param {Object} termini_data termini loop data Object generated by processRawUniProt
      */
-    function draw_termini(termini_data) {
-        let loop_length_calculation;// = style_obj.protein.pore_loops_draw_opts.calc_len;
-        let loop_drawing_shape;// = style_obj.protein.pore_loops_draw_opts.shape;
+    draw_termini(termini_data) {
+        let loop_length_calculation;// = this.style_obj.protein.pore_loops_draw_opts.calc_len;
+        let loop_drawing_shape;// = this.style_obj.protein.pore_loops_draw_opts.shape;
         if (termini_data.terminus_type === "N") {
-            loop_length_calculation = style_obj.protein.nter_loop_draw_opts.calc_len;
-            loop_drawing_shape = style_obj.protein.nter_loop_draw_opts.shape;
+            loop_length_calculation = this.style_obj.protein.nter_loop_draw_opts.calc_len;
+            loop_drawing_shape = this.style_obj.protein.nter_loop_draw_opts.shape;
         } else {
-            loop_length_calculation = style_obj.protein.cter_loop_draw_opts.calc_len;
-            loop_drawing_shape = style_obj.protein.cter_loop_draw_opts.shape;
+            loop_length_calculation = this.style_obj.protein.cter_loop_draw_opts.calc_len;
+            loop_drawing_shape = this.style_obj.protein.cter_loop_draw_opts.shape;
         }
         if (loop_length_calculation.type === "fixed") {
-            termini_data = calculateFixedPointTermini(termini_data, loop_length_calculation, loop_drawing_shape);
+            termini_data = this.calculateFixedPointTermini(termini_data, loop_length_calculation, loop_drawing_shape);
         } else if (loop_length_calculation.type === "reslen") {
-            termini_data = calculateResLengthPointData([termini_data], loop_length_calculation, loop_drawing_shape);
-            draw_loop_paths(termini_data, termini_data[0].terminus_type+"ter_loops");
+            termini_data = this.calculateResLengthPointData([termini_data], loop_length_calculation, loop_drawing_shape);
+            this.draw_loop_paths(termini_data, termini_data[0].terminus_type+"ter_loops");
         }
     }
     
     /**
-     * Function to parse residue relations description array and style_obj, generating points, width and color scales to each relation object.<br>
+     * Function to parse residue relations description array and this.style_obj, generating points, width and color scales to each relation object.<br>
      * Relations between any residues or drawn elements follows the below syntax:<br>
      * {<br>
      *     "source":"random_residue_source", //index OR residue_name+index of residue in relationship or valid element name such as: "DomainI;Helix1"<br>
@@ -6001,7 +6265,7 @@ function NaView({
      *     "raw_weight":possibly_random_residue_weight //number indicating strength of each residue or element relationship<br>
      *     "type": "type" //optional type object for describing multiple types of relationships in plor<br>
      * }<br>
-     * @see allowed_element_names
+     * @see this.allowed_element_names
      * @see draw_relation_paths
      * @see whereIsResIdElName
      * @namespace
@@ -6011,14 +6275,14 @@ function NaView({
      * @param {Object} centroid_data Dictionary containing centroids of elements and residues
      * @param {Object} full_protein_data full data generated by processRawUniProt
      */
-    function draw_residue_relations(residue_relation_data, centroid_data, full_protein_data) {
-        let draw_opts = style_obj.protein.residue_relations_draw_opts;
+    draw_residue_relations(residue_relation_data, centroid_data, full_protein_data) {
+        let draw_opts = this.style_obj.protein.residue_relations_draw_opts;
         let group_weights_by_type;
         if (draw_opts.path_width_scaling.type === "calc") {
             group_weights_by_type = draw_opts.path_width_scaling.group_by_type;
         }
     
-        residue_relation_data = mergeDrawData("residue_relations", deepCopy(residue_relation_data));
+        residue_relation_data = this.mergeDrawData("residue_relations", this.deepCopy(residue_relation_data), this);
     
         let list_of_types = [];
         let total_weights_by_type = {};
@@ -6027,7 +6291,7 @@ function NaView({
                 total_weights_by_type[a.type] = 0;
                 return a.type;
             });
-            list_of_types = deepCopy(list_of_types).filter(onlyUnique);
+            list_of_types = this.deepCopy(list_of_types).filter(this.onlyUnique);
         }
     
         let total_weights = residue_relation_data.reduce(function(r, a) {
@@ -6069,11 +6333,11 @@ function NaView({
         //     return a.raw_weight;
         // });
     
-        let to_use_weights = deepCopy(all_relative_weights);
-        let to_use_weights_by_type = deepCopy(all_relative_weights_by_type);
+        let to_use_weights = this.deepCopy(all_relative_weights);
+        let to_use_weights_by_type = this.deepCopy(all_relative_weights_by_type);
         if (draw_opts.weight_scaling === "absolute") {
             to_use_weights = all_absolute_weights;
-            to_use_weights_by_type = deepCopy(all_absolute_weights_by_type);
+            to_use_weights_by_type = this.deepCopy(all_absolute_weights_by_type);
         }
     
         let current_width_scale;
@@ -6082,6 +6346,7 @@ function NaView({
             let wrange = draw_opts.path_width_scaling.range;
     
             if (group_weights_by_type) {
+                let deepCopy = this.deepCopy;
                 current_width_scale = function(etc, etctype) {
                     let cwdomain = deepCopy(wdomain);
                     if (cwdomain[0] === "min") {
@@ -6111,7 +6376,7 @@ function NaView({
             // console.log(current_width_scale)
         } else if (draw_opts.path_width_scaling.type === "fixed") {
             current_width_scale = function(etc) {
-                return svg_width * draw_opts.path_width_scaling.perc_x;
+                return this.svg_width * draw_opts.path_width_scaling.perc_x;
             };
         } else {
             current_width_scale = function(etc) {
@@ -6123,6 +6388,12 @@ function NaView({
         let lighter_fill_scale = draw_opts.color_scaling.lighter_fill;
         if (draw_opts.color_scaling.type === "calc") {
             if (draw_opts.color_scaling.property === "weight") {
+                if (!draw_opts.color_scaling.domain) {
+                    draw_opts.color_scaling.domain = ["min", "max"];
+                }
+                if (!draw_opts.color_scaling.range) {
+                    draw_opts.color_scaling.range = ["red", "green"];
+                }
                 current_color_scale_prop = draw_opts.weight_scaling + "_" + draw_opts.color_scaling.property;
                 let cdomain = draw_opts.color_scaling.domain;
                 if (cdomain[0] === "min") {
@@ -6158,6 +6429,8 @@ function NaView({
         let test_relation_circle_data = [];
         for (let irrd = 0; irrd < residue_relation_data.length; irrd++) {
             let raw_relation = residue_relation_data[irrd];
+            console.log("raw_relation");
+            console.log(raw_relation);
     
             //TODO: test check for elements
             //TODO: check for stretches of residues
@@ -6167,8 +6440,8 @@ function NaView({
             let source_idx = source_txt;
             let target_idx = target_txt;
     
-            let source_resel = whereIsResIdElName(source_idx,full_protein_data);
-            let target_resel = whereIsResIdElName(target_idx,full_protein_data);
+            let source_resel = this.whereIsResIdElName(source_idx,full_protein_data);
+            let target_resel = this.whereIsResIdElName(target_idx,full_protein_data);
     
             let source_centroid = centroid_data[source_idx].point;
             let target_centroid = centroid_data[target_idx].point;
@@ -6212,39 +6485,45 @@ function NaView({
                 centroid_height = current_width_scale(value_height);
             }
     
-            let mid_point = calculateDotArrayMiddlePoint(source_centroid, target_centroid);
+            let mid_point = this.calculateDotArrayMiddlePoint(source_centroid, target_centroid);
     
             if (draw_opts.centroid_pos.type === "fixed") {
+                console.log("calc centroid fixed");
+                console.log("draw_opts.centroid_pos");
+                console.log(draw_opts.centroid_pos);
                 if (draw_opts.centroid_pos.perc_y !== "between") {
-                    let between_centroid_y = svg_height * draw_opts.centroid_pos.perc_y;
+                    let between_centroid_y = this.svg_height * draw_opts.centroid_pos.perc_y;
                     mid_point[1] = between_centroid_y;
                     // console.log("between_centroid_y");
                     // console.log(between_centroid_y);
                 }
                 if (draw_opts.centroid_pos.perc_x !== "between") {
-                    let between_centroid_x = svg_width * draw_opts.centroid_pos.perc_x;
+                    let between_centroid_x = this.svg_width * draw_opts.centroid_pos.perc_x;
                     mid_point[0] = between_centroid_x;
                 }
+                console.log("mid_point");
+                console.log(mid_point);
             } else {
+                console.log("calc centroid custom");
                 let source_resel_type = "extracellular";
                 if (source_resel.type === "helix" || source_resel.type === "pore")  {
                     source_resel_type = "intramembrane";
-                } else if (source_resel.type === "loop" && source_resel.draw_area.start_y > (svg_height/2)) {
+                } else if (source_resel.type === "loop" && source_resel.draw_area.start_y > (this.svg_height/2)) {
                     source_resel_type = "intracellular";
                 }
                 let target_resel_type = "extracellular";
                 if (target_resel.type === "helix" || target_resel.type === "pore")  {
                     target_resel_type = "intramembrane";
-                } else if (target_resel.type === "loop" && target_resel.draw_area.start_y > (svg_height/2)) {
+                } else if (target_resel.type === "loop" && target_resel.draw_area.start_y > (this.svg_height/2)) {
                     target_resel_type = "intracellular";
                 }
                 let perc_dict = draw_opts["centroid_pos"]["perc_dict"][source_resel_type][target_resel_type];
-                if (perc_dict["perc_y"] !== "between") {
-                    let between_centroid_y = svg_height * perc_dict["perc_y"];
+                if (perc_dict["perc_y1"] !== "between") {
+                    let between_centroid_y = this.svg_height * perc_dict["perc_y1"];
                     mid_point[1] = between_centroid_y;
                 }
-                if (perc_dict["perc_x"] !== "between") {
-                    let between_centroid_x = svg_width * perc_dict["perc_x"]
+                if (perc_dict["perc_x1"] !== "between") {
+                    let between_centroid_x = this.svg_width * perc_dict["perc_x1"]
                     mid_point[0] = between_centroid_x;
                 }
                 between_centroid = [mid_point];
@@ -6253,11 +6532,12 @@ function NaView({
             // console.log("centroid_height");
             // console.log(centroid_height);
             if (centroid_height > 0) {
-                let between_centroids_vector = createVector(source_centroid, target_centroid);
-                let between_centroids_vector_normalized = normalizeVector(between_centroids_vector);
-                let between_centroids_vector_scaled = scaleVector(between_centroids_vector_normalized, centroid_height);
-                let between_centroids_vector_rotated_1 = rotateByAng(between_centroids_vector_scaled, mid_point, 90);
-                let between_centroids_vector_rotated_2 = rotateByAng(between_centroids_vector_scaled, mid_point, -90);
+                console.log("centroid_height");
+                let between_centroids_vector = this.createVector(source_centroid, target_centroid);
+                let between_centroids_vector_normalized = this.normalizeVector(between_centroids_vector);
+                let between_centroids_vector_scaled = this.scaleVector(between_centroids_vector_normalized, centroid_height);
+                let between_centroids_vector_rotated_1 = this.rotateByAng(between_centroids_vector_scaled, mid_point, 90);
+                let between_centroids_vector_rotated_2 = this.rotateByAng(between_centroids_vector_scaled, mid_point, -90);
                 between_centroid = [between_centroids_vector_rotated_1];
                 after_centroid = [between_centroids_vector_rotated_2];
             }
@@ -6280,6 +6560,13 @@ function NaView({
             // if (before_source.length > 0) {
             //     points.push(before_source[0]);
             // }
+            points = points.filter(function(a) {
+                return isNaN(a[0]) === false && isNaN(a[1]) === false;
+            });
+            points = points.filter(function(a) {
+                return a[0] !== null && a[1] !== null;
+            });
+
             for (let ip = 0; ip < points.length; ip++) {
                 let f = "blue";
                 test_relation_circle_data.push({
@@ -6295,12 +6582,12 @@ function NaView({
     
             residue_relation_data[irrd]["source_resid"] = raw_relation["source"];
             residue_relation_data[irrd]["target_resid"] = raw_relation["target"];
-            residue_relation_data[irrd]["points"] = deepCopy(points);
+            residue_relation_data[irrd]["points"] = this.deepCopy(points);
             if (current_color_scale) {
                 let to_fill = current_color_scale(residue_relation_data[irrd][current_color_scale_prop]);
                 if (lighter_fill_scale) {
-                    to_fill = "rgba(" + colorToRGBA(to_fill) + ")";
-                    to_fill = pSBC(0.20,to_fill);
+                    to_fill = "rgba(" + this.colorToRGBA(to_fill) + ")";
+                    to_fill = this.pSBC(0.20,to_fill);
                 }
                 residue_relation_data[irrd]["fill"] = to_fill;
                 residue_relation_data[irrd]["stroke"] = current_color_scale(residue_relation_data[irrd][current_color_scale_prop]);
@@ -6308,7 +6595,7 @@ function NaView({
     
         }
         // plotDotsCircles(test_relation_circle_data, "test_relation_circle_g", "test_relation_circle")
-        draw_relation_paths(residue_relation_data);
+        this.draw_relation_paths(residue_relation_data);
     }
 
     /**
@@ -6320,14 +6607,16 @@ function NaView({
      * @param {Object} full_protein_data full data generated by processRawUniProt
      * @yields {Object} fresidue/element data of String containing name of a given residue/element
      */
-    function whereIsResIdElName(resid_or_elname, full_protein_data) {
-        // parsed_protein_data
+    whereIsResIdElName(resid_or_elname, full_protein_data) {
+        // this.parsed_protein_data
         let resid_or_elname_str = resid_or_elname + "";
         let keywords = ["Domain", "InterDomain"];
         let filtered;
+        let deepCopy = this.deepCopy;
         if (resid_or_elname_str.includes(keywords[0]) === false && resid_or_elname_str.includes(keywords[1]) === false ) {
+            let resid_ind = this.convertToResInd(resid_or_elname)[0];
             filtered = deepCopy(full_protein_data).filter(function(a) {
-                return a.start <= resid_or_elname && a.end >= resid_or_elname;
+                return a.start <= resid_ind && a.end >= resid_ind;
             });
         } else if (resid_or_elname_str.includes(keywords[1]) === true) {
             let interdomainindex = parseInt(resid_or_elname.split("InterDomain")[1].split(";")[0]);
@@ -6361,11 +6650,11 @@ function NaView({
      * @name draw_relation_paths 
      * @param {Array} residue_relation_data array of parsed residue relation Objects
      */
-    function draw_relation_paths(residue_relation_data) {
+    draw_relation_paths(residue_relation_data) {
         // let curveN = d3.line().curve(d3.curveNatural);
         let curveN = d3.line().curve(d3.curveCatmullRom);
         // let curveN = d3.line().curve(d3.curveBasis);
-        let svg_element = d3.select("#"+svg_id)
+        let svg_element = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", "relations_group");
     
@@ -6459,22 +6748,22 @@ function NaView({
      * @param {Object} property_data dictionary of properties per each valid residue indexes
      * @param {Ibject} full_protein_data parsed protein data generated from processRawUniProt
      */
-    function draw_symbols(symbols_data, centroid_data,property_data, full_protein_data) {
+    draw_symbols(symbols_data, centroid_data,property_data, full_protein_data) {
         for (let isd = 0; isd < symbols_data.length; isd++) {
             if (symbols_data[isd].hasOwnProperty("font_family") === false) {
-                symbols_data[isd]["font_family"] = style_obj.text_defs.font_family;
+                symbols_data[isd]["font_family"] = this.style_obj.text_defs.font_family;
             }
             if (symbols_data[isd].hasOwnProperty("font_style") === false) {
-                symbols_data[isd]["font_style"] = style_obj.text_defs.font_style;
+                symbols_data[isd]["font_style"] = this.style_obj.text_defs.font_style;
             }
             if (symbols_data[isd].hasOwnProperty("font_size") === false) {
-                symbols_data[isd]["font_size"] = style_obj.text_defs.font_size;
+                symbols_data[isd]["font_size"] = this.style_obj.text_defs.font_size;
             }
             if (symbols_data[isd].hasOwnProperty("fill") === false) {
-                symbols_data[isd]["fill"] = style_obj.text_defs.fill;
+                symbols_data[isd]["fill"] = this.style_obj.text_defs.fill;
             }
             //pre calc element width and height for collision checking
-            let symbol_bbox = getBBoxGhostText(symbols_data[isd]);
+            let symbol_bbox = this.getBBoxGhostText(symbols_data[isd]);
             if (symbols_data[isd].positioning.type === "absolute") {
                 symbols_data[isd]["tdx"] = symbols_data[isd].positioning.x;
                 symbols_data[isd]["tdy"] = symbols_data[isd].positioning.y;
@@ -6483,7 +6772,7 @@ function NaView({
             } else if (symbols_data[isd].positioning.type === "residue_or_element") {
             // } else {
                 //get anchoring element centroid and append it
-                let obj_index = convertToResInd(symbols_data[isd].positioning.reference);
+                let obj_index = this.convertToResInd(symbols_data[isd].positioning.reference);
                 // let target_resel = whereIsResIdElName(obj_index,full_protein_data);
                 obj_index = obj_index[0];
                 let target_centroid = centroid_data[obj_index].point;
@@ -6496,7 +6785,7 @@ function NaView({
                 //TODO: Allow anchoring on residue relation?
             }
             //centering element
-            if (style_obj.text_defs.center_xy) {
+            if (this.style_obj.text_defs.center_xy) {
                 symbols_data[isd]["tdx"] -= symbol_bbox.width/2;
                 symbols_data[isd]["tdy"] -= symbol_bbox.height/2;
                 symbols_data[isd]["x"] -= symbol_bbox.width/2;
@@ -6519,17 +6808,20 @@ function NaView({
                 "width":symbol_bbox.width,
                 "height":symbol_bbox.height,
             };
+            console.log("symbols_data");
+            console.log(symbols_data);
             if (symbols_data[isd].hasOwnProperty("text") === false && symbols_data[isd].hasOwnProperty("props") === true && symbols_data[isd].positioning.type !== "residue_relation") {
                 let to_text = "";
     
-                let obj_index = convertToResInd(symbols_data[isd].positioning.reference);
+                let obj_index = this.convertToResInd(symbols_data[isd].positioning.reference);
                 obj_index = obj_index[0];
-                let target_data = whereIsResIdElName(symbols_data[isd].positioning.reference,full_protein_data);
-                
+                let target_data = this.whereIsResIdElName(symbols_data[isd].positioning.reference,full_protein_data);
                 let target_data_keys = Object.keys(target_data);
                 let centroid_data_keys = Object.keys(centroid_data[obj_index]);
-                let property_data_keys = Object.keys(property_data[obj_index]);
-    
+                let property_data_keys = [];
+                if (property_data.hasOwnProperty(obj_index)) {
+                    property_data_keys = Object.keys(property_data[obj_index]);
+                }
                 for (let iprop = 0; iprop < symbols_data[isd]["props"].length; iprop++) {
                     let prop = symbols_data[isd]["props"][iprop];
                     if (target_data_keys.indexOf(prop) > -1) {
@@ -6548,7 +6840,7 @@ function NaView({
             // }            
             symbols_data[isd]["draw_area"] = current_draw_area;
         }
-        draw_text_symbols(symbols_data);
+        this.draw_text_symbols(symbols_data);
     }
 
     /**
@@ -6558,8 +6850,8 @@ function NaView({
      * @name draw_text_symbols 
      * @param {Array} symbols_data array of objects including text data to be drawn
      */
-    function draw_text_symbols(symbols_data) {
-        let svg_element = d3.select("#"+svg_id)
+    draw_text_symbols(symbols_data) {
+        let svg_element = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", "text_symbols_group");
 
@@ -6620,8 +6912,8 @@ function NaView({
      * @param {String} path_id_keep optional id for keeping element after generation
      * @yields {Object} getBBox results of text
      */
-    function getBBoxGhostText(data, path_id_keep) {
-        let pg = d3.select("#"+svg_id)
+    getBBoxGhostText(data, path_id_keep) {
+        let pg = d3.select("#"+this.svg_id)
         .append("g")
         .attr("id", function() {
             if (path_id_keep) {
@@ -6672,7 +6964,7 @@ function NaView({
      * @yields {Array} if selection has index returns index of current selection, true<br>
      * else returns current selection, false
      */
-    function convertToResInd(resobj) {
+    convertToResInd(resobj) {
         let resobj_str = resobj + "";
         if (/\d+/.test(resobj) && resobj_str.includes(";") === false) {
             let objind = resobj_str.match(/\d+/)[0];

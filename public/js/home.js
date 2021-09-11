@@ -1,3 +1,5 @@
+var naview;
+
 $(document).ready(function(){
 	$('#select-protein').select2();
 	//TODO: Change rows to 100000
@@ -39,6 +41,11 @@ $(document).ready(function(){
     });
 });
 
+function resetController(){
+    var style_obj = naview.getStyleObject("json");
+    var style_editor = new NaViewStyleEditor(naview, "style_editor", "style_editor_console");
+}
+
 function generateView(){
     let uniprot_id = $('#select-protein').find(':selected')[0].value;
     let div_width = document.getElementById("result").offsetWidth;
@@ -57,7 +64,10 @@ function generateView(){
         crossDomain: true,
         success: function (result) {
             $("#result").empty();
-            var naview = NaView({"protein_input":result, "container_id": "result", "svg_width": div_width});
+            $("#result").append(`<button id="reset" type="button" class="btn btn-primary" onclick="resetController()">Reset controller</button>`)
+            naview = new NaView({"protein_input":result, "container_id": "result", "svg_width": div_width});
+            var style_obj = naview.getStyleObject("json");
+            var style_editor = new NaViewStyleEditor(naview, "style_editor", "style_editor_console");
             
         },
         error: function () {

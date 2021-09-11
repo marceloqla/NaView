@@ -12,7 +12,7 @@
 	<p>To draw the image, you need to create a NaView object passing a JSON settings argument, as can be seen in the example below. The protein input must be a <a href="https://www.uniprot.org" target="_blank">UniProtKb</a> sequence in the text format (i.e. <a href="https://www.uniprot.org/uniprot/P14555.txt" target="_blank">P14555</a>).</p>
 
 	<pre><code>
-var naview = NaView({
+var naview = new NaView({
 	container_id="naview_container",
 	svg_width=1200,
 	svg_height=500,
@@ -24,6 +24,15 @@ var naview = NaView({
 	relationships=[],
 });
 	</code></pre>
+
+	<p>The style editor can be enabled with following commands:</p>
+
+	<code><pre>
+&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/editor.js"&gt;&lt;/script&gt;
+
+var style_obj = naview.getStyleObject("json");
+var style_editor = new NaViewStyleEditor(naview, "style_editor", "style_editor_console");
+	</pre></code>
 
 	<p>The full documentation can be found <a href="{{URL}}/public/docs/index.html" target="_blank">here</a></p>
 </div>
