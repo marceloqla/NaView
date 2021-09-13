@@ -12,8 +12,7 @@
         fetch("https://www.uniprot.org/uniprot/Q99250.txt")
                 .then(response => response.text())
                 .then(data => {
-                    // Do something with your data
-                    console.log(data);
+                    // Start NaView
                     var naview = new NaView({"protein_input":data});
         });
     </script>
