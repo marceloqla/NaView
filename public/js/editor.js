@@ -822,6 +822,7 @@ class NaViewStyleEditor {
                                         "title": "Calc Options:",
                                         "select_id": "protein>short_loops_draw_opts>calc_len>type",
                                         "subs": {
+                                            //TODO: fix these to style obj
                                             "fixed":{
                                                 "height":{"type":"float", "bounds":[0,1], "title":"S-Loop Height", "default": 0.1},
                                                 "width":{"type":"float", "bounds":[0,1], "title":"S-Loop Width", "default": 0.0025},
@@ -1601,7 +1602,7 @@ class NaViewStyleEditor {
         return current_style_obj;
     }
 
-    setCopyObjStyle(key, value) {
+    setCopyObjStyle(key, value, to_print) {
         let current_style_obj = this.style_obj_copy;
         if (key.includes(">")) {
             let all_keys = key.split(">");
@@ -1613,8 +1614,22 @@ class NaViewStyleEditor {
                     current_style_obj = current_style_obj[sub_key];
                 }
             }
+            if (to_print) {
+                console.log("found k");
+                console.log("end_key");
+                console.log(end_key);
+                console.log("value");
+                console.log(value);
+            }
             current_style_obj[end_key] = value;
         } else {
+            if (to_print) {
+                console.log("found k");
+                console.log("key");
+                console.log(key);
+                console.log("value");
+                console.log(value);
+            }
             current_style_obj[key] = value;
         }
     }
@@ -1624,16 +1639,21 @@ class NaViewStyleEditor {
         let div_selection = d3.select("#"+this.editor_id);
         if (div_selection.size() === 0) {
             // d3.select("#" + this.naview_obj.getSvgId());
-            let svg_box = document.getElementById(this.naview_obj.getSvgId()).getBoundingClientRect();
+            // let svg_box = document.getElementById(this.naview_obj.getSvgId()).getBoundingClientRect();
+            let svg_box = this.naview_obj.bbox;
             console.log("svg_box");
             console.log(svg_box);
 
             div_selection = d3.select("body").append("div").attr("id", this.editor_id);
             // div_selection.style("position", "fixed");
             div_selection.style("position", "absolute");
-            // div_selection.style("top", "20%");
+            
+            // div_selection.style("top", (svg_box.top+this.naview_obj.scrollY+(svg_box.height/4))+"px");
+            // div_selection.style("left", (svg_box.left+this.naview_obj.scrollX+(svg_box.width*0.8)) +"px");
+            
             div_selection.style("top", (svg_box.top+(svg_box.height/4))+"px");
-            div_selection.style("left", "80%");
+            div_selection.style("left", (svg_box.left+(svg_box.width*0.8)) +"px");
+
             div_selection.style("z-index", "5");
             div_selection.style("max-width", "250px");
             div_selection.style("min-width", "250px");
@@ -1951,6 +1971,7 @@ class NaViewStyleEditor {
                 opt_el.attr("selected", "selected");
             }
         }
+        main_select.dispatch("change");
     }
 
     createFloatSpinner(d3_element_parent, select_title, new_id, default_value, bounds,spinner_br, style_key) {
@@ -3058,17 +3079,18 @@ class NaViewStyleEditor {
         let that = this;
         let div_selection = d3.select("#"+this.console_id);
         if (div_selection.size() === 0) {
-            let svg_box = document.getElementById(this.naview_obj.getSvgId()).getBoundingClientRect();
+            // let svg_box = document.getElementById(this.naview_obj.getSvgId()).getBoundingClientRect();
+            let svg_box = this.naview_obj.bbox;
             div_selection = d3.select("body").append("div").attr("id", this.console_id);
             div_selection.style("position", "absolute");
-            // div_selection.style("top", (svg_box.top+((svg_box.height*3)/4))+"px");
+            
+            // div_selection.style("top", (svg_box.top+(svg_box.height*0.9))+"px");
+            // div_selection.style("left", (svg_box.left)+"px");
+            
             div_selection.style("top", (svg_box.top+(svg_box.height*0.9))+"px");
-            // div_selection.style("left", "80%");
-            // div_selection.style("left", (svg_box.left+(svg_box.width/4))+"px");
-            div_selection.style("left", svg_box.left+"px");
+            div_selection.style("left", (svg_box.left)+"px");
+
             div_selection.style("z-index", "7");
-            // div_selection.style("max-width", (0.8*svg_box.width)+"px");
-            // div_selection.style("min-width", (0.8*svg_box.width)+"px");
             div_selection.style("max-width", (0.85*svg_box.width)+"px");
             div_selection.style("min-width", (0.85*svg_box.width)+"px");
             div_selection.style("background-color", "#000000bf");
@@ -3520,8 +3542,8 @@ class NaViewStyleEditor {
                     text_element['positioning']['type'] = "residue_or_element";
                     text_element['positioning']['reference'] = d3.select("#text_build_div2_element").property('value');
                 }
-                text_element['positioning']["dx"] = d3.select("#text_build_dx").property("value");
-                text_element['positioning']["dy"] = d3.select("#text_build_dy").property("value");
+                text_element['positioning']["dx"] = parseFloat(d3.select("#text_build_dx").property("value"));
+                text_element['positioning']["dy"] = parseFloat(d3.select("#text_build_dy").property("value"));
 
                 let old_text_rules = that.deepCopy(that.naview_obj.getTextRules());
                 old_text_rules.push(text_element);

@@ -43,7 +43,9 @@ class NaView {
         this.color_rules = color_rules;
         this.text_to_draw = text_to_draw;
         this.relationships = relationships;
-
+        this.scrollX = 0;
+        this.scrollY = 0;
+        this.bbox;
 
         this.one_to_three = {
             "A":"ALA",
@@ -152,7 +154,7 @@ class NaView {
         ];
         this.fillRules = [];
         this.svg_drawarea;
-
+        this.initiated = false;
         this.initLib();
     }
 
@@ -729,6 +731,17 @@ class NaView {
     }
 
     setTextRulesAndReRender(new_text_draw) {
+        let that = this;
+        d3.selectAll(".text_symbol_borders").style("visibility", "hidden");
+        d3.selectAll(".text_symbol_borders").datum(function(od, oi) {
+            let o_od = that.deepCopy(od);
+            o_od.clicked = false;
+            return o_od
+        });
+        let text_edit_div = d3.select("#naview_text_editor_div");
+        if (text_edit_div.size() > 0) {
+            text_edit_div.remove();
+        }
         this.text_to_draw = this.deepCopy(new_text_draw);
         this.resetLib();
     }
@@ -978,11 +991,26 @@ class NaView {
         }
         let select_svg = d3.select("#"+svg_id);
         if (select_svg.size() === 0) {
-            select_svg = select_svg_container.append("svg").attr("id", svg_id);
-        }
-        select_svg
+            select_svg = select_svg_container.append("svg")
+            .attr("id", svg_id)
             .attr("width", svg_width)
             .attr("height", svg_height);
+        } else {
+            select_svg
+                .attr("width", svg_width)
+                .attr("height", svg_height);
+        }
+        if (this.initiated === false) {
+            console.log("init");
+            // this.scrollX = (window.scrollX + 0)*1;
+            this.scrollX = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+            // this.scrollY = (window.scrollY + 0)*1;
+            this.scrollY = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            this.bbox = select_svg.node().getBoundingClientRect();
+            console.log("this.bbox");
+            console.log(this.deepCopy(this.bbox));
+            this.initiated = true;
+        }
     }
 
     /**
@@ -1020,6 +1048,8 @@ class NaView {
     initViz() {
         this.parsed_protein_data_drawareas = this.define_draw_areas(this.parsed_protein_data.data);
         this.parsed_protein_data.data = this.parsed_protein_data_drawareas[0];
+        console.log("this.parsed_protein_data.data");
+        console.log(this.parsed_protein_data.data);
         this.parsed_protein_data.membrane = this.parsed_protein_data_drawareas[1];
         this.parsed_protein_data.draw_area = this.parsed_protein_data_drawareas[2];
         this.parsed_protein_data.resid_properties = this.properties;
@@ -1183,6 +1213,33 @@ class NaView {
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, 1, 1);
         return ctx.getImageData(0, 0, 1, 1).data;
+    }
+
+    colorToRGB(color) {
+        var cvs, ctx;
+        cvs = document.createElement('canvas');
+        cvs.height = 1;
+        cvs.width = 1;
+        ctx = cvs.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        // return "rgba(" + ctx.getImageData(0, 0, 1, 1).data + ")";
+        let rgba_string = ctx.getImageData(0, 0, 1, 1).data+"";
+        let rgba_array = rgba_string.split(",");
+        let rgb_array = rgba_array.slice(0, rgba_array.length-1);
+        let rgb_string = rgb_array.join(",");
+        // return "rgb(" + rgb_string + ")";
+        return rgb_array;
+    }
+
+    componentToHex(c) {
+        c = parseInt(c);
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }
+      
+    rgbToHex(r, g, b) {
+        return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
     }
 
     /**
@@ -2089,7 +2146,7 @@ class NaView {
             this.draw_residue_relations(this.parsed_protein_data.residue_relations, this.parsed_protein_data.residue_element_centroids,this.parsed_protein_data.data);
         }
         if (this.parsed_protein_data.hasOwnProperty("draw_symbols")) {
-            this.draw_symbols(this.parsed_protein_data.draw_symbols, this.parsed_protein_data.residue_element_centroids,this.parsed_protein_data.resid_properties,this.parsed_protein_data.data);
+            this.parsed_protein_data.draw_symbols = this.draw_symbols(this.parsed_protein_data.draw_symbols, this.parsed_protein_data.residue_element_centroids,this.parsed_protein_data.resid_properties,this.parsed_protein_data.data);
         }
         if (this.parsed_protein_data.hasOwnProperty("color_rules")) {
             if (this.parsed_protein_data.color_rules.length > 0) {
@@ -5259,16 +5316,16 @@ class NaView {
      */
     makeLoopScaling(scale_var, loop_length_calculation) {
         let loop_scaling;
-        if (scale_var.scale === "linear") {
+        if (loop_length_calculation.calc.scale === "linear") {
             loop_scaling = d3.scaleLinear()
             .domain(scale_var.domain)
             .range(scale_var.range);
-        } else if (scale_var.scale === "power") {
+        } else if (loop_length_calculation.calc.scale === "power") {
             loop_scaling = d3.scalePow()
             .exponent(loop_length_calculation.calc.exponent)
             .domain(scale_var.domain)
             .range(scale_var.range);
-        } else if (scale_var.scale === "log") {
+        } else if (loop_length_calculation.calc.scale === "log") {
             loop_scaling = d3.scaleLog()
             .base(loop_length_calculation.calc.base)
             .domain(scale_var.domain)
@@ -5953,7 +6010,52 @@ class NaView {
         .join(
             function(enter) {
                 let e = enter.append("g")
-                .attr("class", class_naming + " element_path_group");
+                .attr("class", class_naming + " element_path_group")
+                .datum(function(d) {
+                    let nd = that.deepCopy(d);
+                    let identifier_1 = "dom_name";
+                    let identifier_2 = "dom_itype";
+                    if (d.hasOwnProperty("dom_name") === false || !d["dom_name"]) {
+                        identifier_1 = "id";
+                        identifier_2 = "id";
+                    }
+                    let el_id_basis = class_naming+"_" + d[identifier_1] + "_" + d[identifier_2];
+                    nd.path_id_basis = el_id_basis;
+                    return nd;
+                });
+
+                let b = e.append("g")
+                .attr("id", function(d, i){
+                    return "g_border_" + d.path_id_basis + "_" + i;
+                })
+                .datum(function(d) {
+                    let nd = that.deepCopy(d);
+                    nd.clicked = false;
+                    return nd;
+                })
+                .style("visibility", "hidden")
+                .attr("class", "element_path_group_border");
+
+                b.selectAll(+function(d,i){
+                    return ".g_border_" + d.path_id_basis + "_points";
+                })
+                .data(function(d){
+                    return d.points;
+                })
+                .enter()
+                .append("circle")
+                .attr("class", function(){
+                    let p_basis = d3.select(d3.select(this).node().parentNode).datum().path_id_basis;
+                    return "g_border_" + p_basis + "_points";
+                })
+                .attr("cx", function(dc){
+                    return dc[0];
+                })
+                .attr("cy", function(dc){
+                    return dc[1];
+                })
+                .attr("r", 5)
+                .attr("fill", "green");
 
                 let p = e.append("path")
                 .attr("id", function(d){
@@ -5984,6 +6086,44 @@ class NaView {
                 })
                 // .style("vector-effect", "non-scaling-stroke")
                 ;
+
+                e.on("mouseover", function(d,i) {
+                    let border_g =d3.select("#g_border_"+ d.path_id_basis + "_" + i);
+                    let nd = that.deepCopy(border_g.datum());
+                    if (nd["clicked"] === false) {
+                        // border_g.style("visibility", "");
+                        border_g.style("visibility", "hidden");
+                    }
+                })
+                .on("mouseout", function(d,i) {
+                    let border_g =d3.select("#g_border_"+ d.path_id_basis + "_" + i);
+                    let nd = that.deepCopy(border_g.datum());
+                    if (nd["clicked"] === false) {
+                        border_g.style("visibility", "hidden");
+                    }
+                })
+                // .on("click", function(d, i) {
+                //     if (d3.event.defaultPrevented) return; // dragged
+                //     let border_rect = d3.select("#text_symbol_border_" + i);
+                //     d3.selectAll(".text_symbol_borders").style("visibility", "hidden");
+                //     d3.selectAll(".text_symbol_borders").datum(function(od, oi) {
+                //         let nd2 = that.deepCopy(od);
+                //         if (oi !== i) {
+                //             nd2["clicked"] = false;
+                //         }
+                //         return nd2;
+                //     });
+                //     closeTextEditorDiv();
+                //     let nd = that.deepCopy(border_rect.datum());
+                //     if (nd["clicked"] === false) {
+                //         d3.select("#text_symbol_border_" + i).style("visibility", "");
+                //         //trigger open text edit div with various properties
+                //         makeTextEditorDiv(d, i);
+                //     }
+                //     nd["clicked"] = !nd["clicked"];
+                //     border_rect.datum(nd);
+                // });
+
                 draw_loop_paths_resids(e, class_naming, that);
                 return e;
             },
@@ -6841,6 +6981,7 @@ class NaView {
             symbols_data[isd]["draw_area"] = current_draw_area;
         }
         this.draw_text_symbols(symbols_data);
+        return symbols_data
     }
 
     /**
@@ -6851,6 +6992,211 @@ class NaView {
      * @param {Array} symbols_data array of objects including text data to be drawn
      */
     draw_text_symbols(symbols_data) {
+        let that = this;
+
+        function draggedText(d, i) {
+            let current_text_drag = d3.select(this);
+            let current_border = d3.select("#text_symbol_border_" + i);
+
+            var coordinates= d3.mouse(this);
+            var mx = coordinates[0];
+            var my = coordinates[1];
+
+            current_text_drag
+            .attr('x', mx)
+            .attr('y', my);
+            updateTextBox(i);
+            // current_border
+            // .attr('x', mx)
+            // .attr('y', function() {
+            //     return current_text_drag.node().getBBox().y;
+            // });
+        }
+        function updateTextBox(tindex) {
+            let text_el = d3.select("#text_symbol_"+tindex);
+            let box = d3.select("#text_symbol_border_"+tindex)
+            .attr('x', function() {
+                return text_el.node().getBBox().x;
+            })
+            .attr('y', function() {
+                return text_el.node().getBBox().y;
+            })
+            .attr('height', function() {
+                return text_el.node().getBBox().height;
+            })
+            .attr('width', function() {
+                return text_el.node().getBBox().width;
+            });
+            let text_edit_div = d3.select("#naview_text_editor_div");
+            if (text_edit_div.size() > 0) {
+                text_edit_div.style("left", function() {
+                    let text_el = d3.select("#text_symbol_"+tindex);
+                    return ((text_el.node().getBBox().x + text_el.node().getBBox().width + 15 )+ that.scrollX)+ "px";
+                })
+                .style("top", function(){
+                    let text_el = d3.select("#text_symbol_"+tindex);
+                    // let y_scroll = 0;
+                    // let y_scroll = document.scrollY;
+                    let y_scroll = that.scrollY;
+                    // let y_scroll = -1.0*that.scrollY;
+                    return ((text_el.node().getBBox().y+5)+ y_scroll) + "px";
+                });
+            }
+        }
+        function updateTextData(tindex, attr_to_up, value_to_up) {
+            let text_el = d3.select("#text_symbol_"+tindex);
+            let ol_data = text_el.datum();
+            ol_data[attr_to_up] = value_to_up;
+            that.parsed_protein_data.draw_symbols[tindex][attr_to_up] = value_to_up;
+        }
+        function makeTextEditorDiv(datum, tindex) {
+            let text_edit_div = d3.select("#naview_text_editor_div");
+            if (text_edit_div.size() > 0) {
+                text_edit_div.remove();
+            }
+            text_edit_div = d3.select("body")
+            .append("div").attr("id", "naview_text_editor_div")
+            .style("position", "absolute")
+            .style("text-align", "center")
+            .style("background", "white")
+            .style("z-index", 4)
+            .style("max-height", function() {
+                return (d3.select("#" + that.svg_id).node().getBBox().height / 3)+"px";
+            })
+            .style("font-family", "monospace")
+            .style("overflow-y", "scroll")
+            .style("border", "black 1px solid")
+            .style("left", function() {
+                let text_el = d3.select("#text_symbol_"+tindex);
+                // return (text_el.node().getBBox().x + text_el.node().getBBox().width + 15 )+ "px";
+                return ((text_el.node().getBBox().x + text_el.node().getBBox().width + 15 ) + that.scrollX)+ "px";
+            })
+            .style("top", function(){
+                let text_el = d3.select("#text_symbol_"+tindex);
+                // return (text_el.node().getBBox().y+5) + "px";
+                // let y_scroll = 0;
+                // let y_scroll = document.scrollY;
+                let y_scroll = that.scrollY;
+                // let y_scroll = -1.0*that.scrollY;
+                return ((text_el.node().getBBox().y+5) + y_scroll) + "px";
+            });
+            text_edit_div.append("h4").html("Text Editor:");
+            //append:
+            //input for text-editing
+            text_edit_div.append("p").html("Text:");
+            text_edit_div.append("input")
+            .attr("type", "text")
+            .attr("size", "5")
+            .attr("value", function() {
+                return datum.text;
+            })
+            .on("change", function() {
+                let new_text = d3.select(this).property("value");
+                let text_el = d3.select("#text_symbol_"+tindex);
+                text_el.text(new_text);
+                updateTextBox(tindex);
+                updateTextData(tindex, "text", new_text);
+            });
+            //input for font-editing
+            text_edit_div.append("p").html("Font Family:");
+            text_edit_div.append("input")
+            .attr("type", "text")
+            .attr("value", function() {
+                return datum["font_family"];
+            })
+            .on("change", function() {
+                let new_font = d3.select(this).property("value");
+                let text_el = d3.select("#text_symbol_"+tindex);
+                text_el.attr("font-family", new_font);
+                updateTextBox(tindex);
+                updateTextData(tindex, "font_family", new_font);
+            });
+            
+            //input for font size selection
+            text_edit_div.append("p").html("Font Size:");
+            text_edit_div.append("input")
+            .attr("type", "number")
+            .attr("value", function() {
+                return parseFloat(datum["font_size"]);
+            })
+            .attr("step", 1)
+            .on("change", function() {
+                let new_size = d3.select(this).property("value");
+                let text_el = d3.select("#text_symbol_"+tindex);
+                text_el.attr("font-size", new_size);
+                updateTextBox(tindex);
+                updateTextData(tindex, "font_size", new_size);
+            });
+            //input for font style selection
+            text_edit_div.append("p").html("Font Style:");
+            let sel = text_edit_div.append("select")
+            .on("change", function(){
+                let new_style = d3.select(this).property("value");
+                let text_el = d3.select("#text_symbol_"+tindex);
+                text_el.attr("font-style", new_style);
+                updateTextBox(tindex);
+                updateTextData(tindex, "font_style", new_style);
+            });
+            sel.append("option")
+            .attr("value", "normal")
+            .html("Normal")
+            .property("selected", function() {
+                let text_el = d3.select("#text_symbol_"+tindex);
+                let current_style = text_el.attr("font-style");
+                if (current_style === "normal") {
+                    return true;
+                }
+                return false;
+            });
+            sel.append("option")
+            .attr("value", "italic")
+            .html("Italic")
+            .property("selected", function() {
+                let text_el = d3.select("#text_symbol_"+tindex);
+                let current_style = text_el.attr("font-style");
+                if (current_style === "italic") {
+                    return true;
+                }
+                return false;
+            });
+
+            //input for font color selection
+            text_edit_div.append("p").html("Font Color:");
+            text_edit_div.append("input")
+            .attr("type", "color")
+            .attr("value", function(){
+                let d_color = datum.fill;
+                d_color = that.colorToRGB(d_color);
+                d_color = that.rgbToHex(d_color[0],d_color[1],d_color[2]);
+                return d_color;
+            })
+            .on("change", function() {
+                let new_color = d3.select(this).property("value");
+                let text_el = d3.select("#text_symbol_"+tindex);
+                text_el.attr("fill", new_color);
+                updateTextBox(tindex);
+                updateTextData(tindex, "fill", new_color);
+            });
+            text_edit_div.append("br")
+            text_edit_div.append("br")
+            text_edit_div.append("button")
+            .html("Remove Text")
+            .on("click", function () {
+                let text_elg = d3.select("#text_symbols_g_"+tindex);
+                text_elg.remove();
+                that.parsed_protein_data.draw_symbols.splice(tindex, 1);
+                d3.select("#naview_text_editor_div").remove();
+            })
+        }
+        function closeTextEditorDiv() {
+            let text_edit_div = d3.select("#naview_text_editor_div");
+            if (text_edit_div.size() > 0) {
+                text_edit_div.remove();
+            }
+        }
+        var dragHandlerText = d3.drag()
+        .on('drag', draggedText);
+
         let svg_element = d3.select("#"+this.svg_id)
         .append("g")
         .attr("class", "text_symbols_group");
@@ -6860,7 +7206,38 @@ class NaView {
         .join(
             function(enter) {
                 let e = enter.append("g")
-                .attr("class", "text_symbols_g");
+                .attr("id", function(d,i){
+                    return "text_symbols_g_" + i;
+                })
+                .attr("class", "text_symbols_g")
+                .style("cursor", "pointer")
+                .datum(function(d, i) {
+                    let nd = that.deepCopy(d);
+                    nd["ind_el"] = i;
+                    return nd;
+                })
+                ;
+
+                let b = e.append("rect")
+                .attr("class", "text_symbol_borders")
+                .attr("id", function(d, i){
+                    return "text_symbol_border_" + i;
+                })
+                .attr("fill", "transparent")
+                .attr("stroke", "black")
+                .attr("stroke-size", '2px')
+                .style("visibility", "hidden")
+                .datum(function(d) {
+                    let nd = that.deepCopy(d);
+                    nd["clicked"] = false;
+                    return nd;
+                })
+                .attr("width", function(d) {
+                    return d["draw_area"]["width"];
+                })
+                .attr("height", function(d) {
+                    return d["draw_area"]["height"];
+                });
 
                 let p = e.append("text")
                 .attr("id", function(d, i){
@@ -6891,6 +7268,55 @@ class NaView {
                 .attr("y", function(d) {
                     return d["draw_area"]["start_y"];
                 });
+                dragHandlerText(p);
+
+                b.attr("x", function(d, i) {
+                    let text_el = d3.select("#text_symbol_" + i);
+                    return text_el.node().getBBox().x;
+                    // return d["draw_area"]["start_x"];
+                })
+                .attr("y", function(d, i) {
+                    let text_el = d3.select("#text_symbol_" + i);
+                    return text_el.node().getBBox().y;
+                    // return d["draw_area"]["start_y"]-d["draw_area"]["height"];
+                })
+
+                e.on("mouseover", function(d,i) {
+                    let border_rect = d3.select("#text_symbol_border_" + i);
+                    let nd = that.deepCopy(border_rect.datum());
+                    if (nd["clicked"] === false) {
+                        d3.select("#text_symbol_border_" + i).style("visibility", "");
+                    }
+                })
+                .on("mouseout", function(d,i) {
+                    let border_rect = d3.select("#text_symbol_border_" + i);
+                    let nd = that.deepCopy(border_rect.datum());
+                    if (nd["clicked"] === false) {
+                        d3.select("#text_symbol_border_" + i).style("visibility", "hidden");
+                    }
+                })
+                .on("click", function(d, i) {
+                    if (d3.event.defaultPrevented) return; // dragged
+                    let border_rect = d3.select("#text_symbol_border_" + i);
+                    d3.selectAll(".text_symbol_borders").style("visibility", "hidden");
+                    d3.selectAll(".text_symbol_borders").datum(function(od, oi) {
+                        let nd2 = that.deepCopy(od);
+                        if (oi !== i) {
+                            nd2["clicked"] = false;
+                        }
+                        return nd2;
+                    });
+                    closeTextEditorDiv();
+                    let nd = that.deepCopy(border_rect.datum());
+                    if (nd["clicked"] === false) {
+                        d3.select("#text_symbol_border_" + i).style("visibility", "");
+                        //trigger open text edit div with various properties
+                        makeTextEditorDiv(d, i);
+                    }
+                    nd["clicked"] = !nd["clicked"];
+                    border_rect.datum(nd);
+                });
+
                 // drawTextCenterArrows(e);
                 return e;
             },
