@@ -1496,7 +1496,7 @@ class NaViewStyleEditor {
                                             "type": false,
                                         },
                                         "custom_update": {
-                                            "select_id":"protein>residue_relations_draw_opts>color_scaling>domain"
+                                            "select_id":["protein>residue_relations_draw_opts>color_scaling>domain","protein>residue_relations_draw_opts>color_scaling>range"]
                                         }
                                     },
                                     "property":{"default":"weight"},
@@ -1519,12 +1519,25 @@ class NaViewStyleEditor {
                                         "allow":["min", "max"]
                                     },
                                     "range":{
-                                        "type":"arrayConnected",
+                                        "type":"arrayConnectedAccording",
                                         "title":"Color Scale Range",
                                         "select_id":"protein>residue_relations_draw_opts>color_scaling>domain",
-                                        "default":[2, 5],
-                                        "subtype":"color",
-                                        "default":["red", "green"]
+                                        "according_id":"protein>residue_relations_draw_opts>color_scaling>type",
+                                        "subtype":{
+                                            "weight":"color",
+                                            "type":"color",
+                                            "none": ""
+                                        },
+                                        "defaults": {
+                                            "weight":["lightblue", "blue"],
+                                            "type":["lightblue", "blue"]
+                                        },
+                                        // "type":"arrayConnected",
+                                        // "title":"Color Scale Range",
+                                        // "select_id":"protein>residue_relations_draw_opts>color_scaling>domain",
+                                        // "subtype":"color",
+                                        // "default":["red", "green"]
+                                        // "default":[2, 5],
                                     },
                                     "lighter_fill":{"type":"boolean","title":"Auto lighten Edge Fill?","default":true},
                                 }
@@ -1939,8 +1952,16 @@ class NaViewStyleEditor {
             old_datum.value = new_value;
             d3.select("#"+new_id+"_element").datum(old_datum);
             if (d.hasOwnProperty("custom_update")) {//arrayConnectedAccording
-                let trigger_update_id = d["custom_update"]["select_id"].replaceAll(">", "_")+"_hidden_update_btn";
-                d3.select('#'+trigger_update_id).dispatch('click');
+                if (d["custom_update"]["select_id"]instanceof(Array)) {
+                    let trigger_update_id = d["custom_update"]["select_id"][0].replaceAll(">", "_")+"_hidden_update_btn";
+                    let trigger_update_id2 = d["custom_update"]["select_id"][1].replaceAll(">", "_")+"_hidden_update_btn";
+                    d3.select('#'+trigger_update_id).dispatch('click');
+                    d3.select('#'+trigger_update_id2).dispatch('click');
+
+                } else {
+                    let trigger_update_id = d["custom_update"]["select_id"].replaceAll(">", "_")+"_hidden_update_btn";
+                    d3.select('#'+trigger_update_id).dispatch('click');
+                }
             }
             that.setCopyObjStyle(style_key, new_value);
 
@@ -3158,7 +3179,7 @@ class NaViewStyleEditor {
         let s_div = div_selection.append("div");
         /**
          * TEXT
-         * TEXT
+         * TEXT "Element-Centered"
          */
         if (this.console_type === "Text") {
             let text_select = s_div.append("select")
@@ -3193,6 +3214,10 @@ class NaViewStyleEditor {
                 let select_text_build_div = d3.select("#text_build_div");
                 select_text_build_div.html("");
                 if (option_string === "Text-Based") {
+                    if (d3.select("#"+that.console_id+"_text_select_pos").size() > 0) {
+                        let option_string2 = d3.select("#"+that.console_id+"_text_select_pos").property('value');
+                        buildPositioning(option_string2);
+                    }
                     d3.select("#"+that.console_id+"_text_select_pos").attr('disabled', null);
                     select_text_build_div
                     .append("span")
@@ -3212,7 +3237,7 @@ class NaViewStyleEditor {
                     // })
                     ;
                 } else if (option_string === "Property-Based") {
-                    buildPositioning("Element-Centered");
+                    buildPositioning("Element-Centered", true);
                     d3.select("#"+that.console_id+"_text_select_pos").property("value", "Element-Centered");
                     d3.select("#"+that.console_id+"_text_select_pos").attr('disabled', true);
 
@@ -3400,7 +3425,10 @@ class NaViewStyleEditor {
             }
 
             let text_build_div2 = s_div.append("div").attr("id", "text_build_div2").style("display", "inline");
-            function buildPositioning(option_string) {
+            function buildPositioning(option_string, prop_bas) {
+                if (!prop_bas) {
+                    prop_bas = false;
+                }
                 let select_text_build_div = d3.select("#text_build_div2");
                 select_text_build_div.html("");
                 if (option_string === "Absolute") {
@@ -3458,7 +3486,14 @@ class NaViewStyleEditor {
                     .style("display", "inline");
         
                     // let text_options3 = Object.keys(that.naview_obj.getElementNamesCentroids());
-                    let text_options3 = Object.values(that.naview_obj.getElementNamesCentroids()).map(function(a) {
+                    let text_options3 = Object.values(that.naview_obj.getElementNamesCentroids())
+                    if (prop_bas === true) {
+                        console.log("prop_bas!");
+                        text_options3 = text_options3.filter(function(a) {
+                            return a.hasOwnProperty("resname");
+                        });
+                    }
+                    text_options3 = text_options3.map(function(a) {
                         if (a.hasOwnProperty("resname")) {
                             return a.resname;
                         } else {
@@ -3527,10 +3562,12 @@ class NaViewStyleEditor {
             .on("click", function() {
                 //add text to plot
                 let text_element = {};
+                let reset_props = false;
                 if (d3.select("#"+that.console_id+"_text_select_type").property('value') === "Text-Based") {
                     text_element['text'] = d3.select("#text_build_div_text").property('value');
                 } else {
                     text_element['props'] = d3.select("#text_build_div_span").datum().props;
+                    reset_props = true;
                 }
                 text_element['positioning'] = {};
                 if (d3.select("#"+that.console_id+"_text_select_pos").property('value') === "Absolute") {
@@ -3547,6 +3584,10 @@ class NaViewStyleEditor {
 
                 let old_text_rules = that.deepCopy(that.naview_obj.getTextRules());
                 old_text_rules.push(text_element);
+                if (reset_props) {
+                    d3.select("#text_build_div_span").datum([]);
+                }
+                // 
                 that.naview_obj.setTextRulesAndReRender(old_text_rules);
             });
 
