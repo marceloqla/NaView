@@ -5,30 +5,28 @@
 	<p>To use Na<sub>V</sub>iew in your website, all you need to do is include the following libraries in your project:</p>
 
 	<pre><code>
-&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/d3.v5.min.js"&gt;&lt;/script&gt;
-&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/naview.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/marceloqla/NaView@1.1/public/js/naview.js"&gt;&lt;/script&gt;
 	</code></pre>
 
 	<p>To draw the image, you need to create a NaView object passing a JSON settings argument, as can be seen in the example below. The protein input must be a <a href="https://www.uniprot.org" target="_blank">UniProtKb</a> sequence in the text format (i.e. <a href="https://www.uniprot.org/uniprot/P14555.txt" target="_blank">P14555</a>).</p>
 
 	<pre><code>
-var naview = new NaView({
-	container_id="naview_container",
-	svg_width=1200,
-	svg_height=500,
-	style_obj_input,
-	protein_input,
-	properties={},
-	color_rules=[],
-	text_to_draw=[],
-	relationships=[],
+fetch("https://www.uniprot.org/uniprot/P14555.txt")
+    .then(response => response.text())
+    .then(data => {
+    var naview = new NaView({
+    	"protein_input":data, 
+        "container_id": "result",
+        "svg_width": 800
+    });
 });
 	</code></pre>
 
 	<p>The style editor can be enabled with following commands:</p>
 
 	<code><pre>
-&lt;script src="http://bioinfo.icb.ufmg.br/naview/public/js/editor.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/marceloqla/NaView@1.1/public/js/editor.js"&gt;&lt;/script&gt;
 
 var style_obj = naview.getStyleObject("json");
 var style_editor = new NaViewStyleEditor(naview, "style_editor", "style_editor_console");
