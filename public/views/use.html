@@ -6,7 +6,7 @@
 
 	<pre><code>
 &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"&gt;&lt;/script&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/marceloqla/NaView@1.1/public/js/naview.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/marceloqla/NaView@1.1/public/js/naview.min.js"&gt;&lt;/script&gt;
 	</code></pre>
 
 	<p>To draw the image, you need to create a NaView object passing a JSON settings argument, as can be seen in the example below. The protein input must be a <a href="https://www.uniprot.org" target="_blank">UniProtKb</a> sequence in the text format (i.e. <a href="https://www.uniprot.org/uniprot/P14555.txt" target="_blank">P14555</a>).</p>
@@ -24,13 +24,36 @@ fetch("https://www.uniprot.org/uniprot/P14555.txt")
 	</code></pre>
 
 	<p>The style editor can be enabled with following commands:</p>
-
-	<code><pre>
-&lt;script src="https://cdn.jsdelivr.net/gh/marceloqla/NaView@1.1/public/js/editor.js"&gt;&lt;/script&gt;
-
-var style_obj = naview.getStyleObject("json");
-var style_editor = new NaViewStyleEditor(naview, "style_editor", "style_editor_console");
-	</pre></code>
+	<script async src="//jsfiddle.net/wLr3vfn0/1/embed/js,result/dark/"></script>
 
 	<p>The full documentation can be found <a href="{{URL}}/public/docs/index.html" target="_blank">here</a></p>
+
+	<h2>Text Annotations</h2>
+
+	<p>Text annotations can be included directly in the NaView rendering object as a list of json objects as shown in the example below:</p>
+	<script async src="//jsfiddle.net/duentiop/rh9Lgnjq/33/embed/js,css,result/dark/"></script>
+
+	<p style="margin-top: 2rem;">Alternatively, text annotations can be included by using the <a href="public/images/tut1_1.png" class="fresco" data-fresco-caption="1. Click the Open Console menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true">NaView Style Editor</a>:</p>
+	<a href="public/images/tut1_2.png" class="fresco" data-fresco-caption="2. Use the Console “Text” editor (top select menu). The desired Text can be added by editing the “Text:” input box. Absolute plot positioning can be controlled by editing the “X Pos” and “Y Pos” numeric inputs." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_3.png" class="fresco" data-fresco-caption="3. In this example, settings are the same as code example 1 (Text: “Hello world”, X Pos: 10, Y Pos 50)." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_4.png" class="fresco" data-fresco-caption="4. Click “Draw Text” to add the current text annotation to the plot." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_5.png" class="fresco" data-fresco-caption="5. Text annotations can be moved by clicking and dragging around the plot." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_6.png" class="fresco" data-fresco-caption="6. A single mouse click to an annotation opens up a text editing menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_7.png" class="fresco" data-fresco-caption="7. Font size, style, family can be edited in this menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_8.png" class="fresco" data-fresco-caption="8. Removal of the added text is also possible in this interface." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_9.png" class="fresco" data-fresco-caption="9. Click the text editing interface a second time to close it." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_10.png" class="fresco" data-fresco-caption="10. Adding a Text element centered at a given Residue/Element is also possible." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_11.png" class="fresco" data-fresco-caption="11. Any of the currently drawn sodium channel residues can be selected by a dropdown menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_12.png" class="fresco" data-fresco-caption="12. At the end of this menu it is also possible to select any of the drawn helix and loop elements." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_13.png" class="fresco" data-fresco-caption="13. After editing the “Text” input box and clicking the “Draw Text” button a new text is added at the selected residue/element plot positioned centroid coordinates." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_14.png" class="fresco" data-fresco-caption="14. Property-Based text addition can be controlled by the first dropdown menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_15.png" class="fresco" data-fresco-caption="15. The new menu allows the addition of residue/element mapped properties." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_16.png" class="fresco" data-fresco-caption="16. Free text can also be appended alongside these properties by clicking the “Add Text” button." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_17.png" class="fresco" data-fresco-caption="17. In this example the new text to be appended is: “Res:”. Click the “OK” button to confirm the property addition." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_18.png" class="fresco" data-fresco-caption="18. Click the “Add Prop” button for appending an residue/element based annotation to the previously added “Res:” text." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_19.png" class="fresco" data-fresco-caption="19. Select the desired property to be appended from the dropdown menu." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_20.png" class="fresco" data-fresco-caption="20. Select the “OK” button to confirm." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_21.png" class="fresco" data-fresco-caption="21. Click the “Add Prop” button again to add a second annotation to be rendered." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_22.png" class="fresco" data-fresco-caption="22. Lastly select an element in the “Element:” dropdown menu and click the “Draw Text” button." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
+	<a href="public/images/tut1_23.png" class="fresco" data-fresco-caption="23. The three properties are now drawn in the plot in the user-selected order. Overlapping text elements can be clicked and dragged around the figure as shown in step 6." data-fresco-options="ui: 'inside'" data-fresco-group="annotations" data-fresco-group-options="loop: true"></a>
 </div>

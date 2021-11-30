@@ -8,6 +8,6 @@ class Contact extends Base{
 	public static function getContact(){
 		$content = View::render('contact');
 
-		return parent::getPage('NaView > Contact', $content, "", "contact");
+		return parent::getPage('NaView > Contact', $content, "", "", "contact");
 	}
 }
