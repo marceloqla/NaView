@@ -189,6 +189,9 @@ class NaView {
                     "lipid_tail_number": 2,
                     "lipid_tail_breaks": 1,
                     "lipid_tail_spacing": 0.001, //% of viewbox height
+
+                    "fill":"yellow",
+                    "opacity":0.6,
                 },
                 "membrane_region_height": 0.4, //% of viewbox
             },
@@ -931,7 +934,17 @@ class NaView {
     //     "InterDomain5;Loop"
     // ];
 
-
+    traverseStyleObj(styleobj, refobj) {
+        for (var i in refobj) {
+            // func.apply(this,[i,o[i]]);  
+            if (refobj[i] !== null && typeof(refobj[i]) == "object") {
+                //going one step down in the object tree!!
+                this.traverseStyleObj(styleobj[i], refobj[i]);
+            } else if (refobj[i] !== null && typeof(refobj[i]) !== "object") {
+                styleobj[i] = this.deepCopy(refobj[i]);
+            }
+        }
+    }
 
     /**
      * Main function for running library. Uses detected parameters to automatically create NaV plot.
@@ -941,12 +954,16 @@ class NaView {
      */
     initLib() {
         this.initMainSvg(this.svg_id, this.container_id, this.svg_width, this.svg_height);
+        // if (this.style_obj_input) {
+        //     this.style_obj = this.style_obj_input;
+        // }
+        // if (!this.style_obj) {
+        //     console.warn('style obj not set. creating a new one...');
+        //     this.style_obj = this.generateDefaultStyleObject();
+        // }
+        this.style_obj = this.generateDefaultStyleObject();
         if (this.style_obj_input) {
-            this.style_obj = this.style_obj_input;
-        }
-        if (!this.style_obj) {
-            console.warn('style obj not set. creating a new one...');
-            this.style_obj = this.generateDefaultStyleObject();
+            this.traverseStyleObj(this.style_obj, this.style_obj_input)
         }
         if (this.protein_input) {
             this.initData();
